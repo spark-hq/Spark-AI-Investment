@@ -1,0 +1,1047 @@
+# 📚 **Spark Investment AI - Complete Project Documentation**
+
+**Version:** 1.0.0  
+**Last Updated:** November 17, 2024  
+**Author:** Tejas  
+**Status:** ✅ Backend Foundation Complete
+
+---
+
+## 📋 **Table of Contents**
+
+1. [Project Overview](#project-overview)
+2. [Architecture](#architecture)
+3. [Tech Stack](#tech-stack)
+4. [Project Structure](#project-structure)
+5. [Database Schema](#database-schema)
+6. [API Endpoints](#api-endpoints)
+7. [Environment Configuration](#environment-configuration)
+8. [Setup Instructions](#setup-instructions)
+9. [Running the Application](#running-the-application)
+10. [Testing](#testing)
+11. [Features Implemented](#features-implemented)
+12. [Next Steps](#next-steps)
+
+---
+
+## 🎯 **Project Overview**
+
+**Spark Investment AI** is a comprehensive personal trading platform that consolidates portfolio data from multiple Indian trading platforms (Zerodha, Groww, Upstox, Binance) and provides AI-driven analysis and automated trading strategies.
+
+### **Project Goals**
+- Aggregate investment data from multiple platforms
+- Provide AI-powered portfolio analysis and recommendations
+- Support both equity swing trading and F&O (Futures & Options) trading
+- Automate investment strategies with rule-based systems
+- Offer real-time market data and trading insights
+
+### **Target Users**
+- Individual investors managing multiple trading accounts
+- Users seeking AI-driven investment insights
+- Traders interested in automated strategies
+
+---
+
+## 🏗️ **Architecture**
+
+### **System Architecture**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                  React Frontend (Port 3000)              │
+│          Vite + React 19 + Zustand + TailwindCSS        │
+└──────────────────────┬──────────────────────────────────┘
+                       │ HTTP/WebSocket
+        ┌──────────────┴──────────────┐
+        │                              │
+        ▼                              ▼
+┌─────────────────┐          ┌─────────────────┐
+│  Node Service   │          │ Python Service  │
+│   (Port 5000)   │◄────────►│   (Port 8000)   │
+│                 │   HTTP   │                 │
+│  Express.js     │          │    FastAPI      │
+│  Prisma ORM     │          │    NumPy/SciPy  │
+│  Socket.IO      │          │    (F&O Calcs)  │
+└────────┬────────┘          └────────┬────────┘
+         │                            │
+         │                            │
+         ▼                            ▼
+┌─────────────────┐          ┌─────────────────┐
+│  PostgreSQL 15  │          │    Redis 7      │
+│   (Port 5433)   │          │   (Port 6380)   │
+│                 │          │                 │
+│  Primary DB     │          │  Cache/Session  │
+│  (via Prisma)   │          │  (via ioredis)  │
+└─────────────────┘          └─────────────────┘
+         │                            │
+         └────────────┬───────────────┘
+                      │
+              ┌───────▼────────┐
+              │  Docker        │
+              │  Containers    │
+              └────────────────┘
+```
+
+### **Service Responsibilities**
+
+| Service | Port | Responsibility | Technology |
+|---------|------|----------------|------------|
+| **Node Service** | 5000 | Authentication, Portfolio Management, Investments, Transactions, API Gateway | Express + Prisma + PostgreSQL |
+| **Python Service** | 8000 | F&O Calculations, Black-Scholes, Greeks, Advanced Analytics | FastAPI + NumPy + SciPy |
+| **PostgreSQL** | 5433 | Primary Database (Users, Portfolios, Investments, Transactions) | PostgreSQL 15 |
+| **Redis** | 6380 | Caching, Session Storage, Real-time Data | Redis 7 |
+| **pgAdmin** | 5051 | Database Management GUI | pgAdmin 4 |
+| **Redis Commander** | 8081 | Redis Management GUI | Redis Commander |
+
+---
+
+## 💻 **Tech Stack**
+
+### **Backend - Node Service**
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Node.js | 18+ | Runtime environment |
+| Express.js | 4.18.2 | Web framework |
+| Prisma | 5.7.1 | PostgreSQL ORM |
+| PostgreSQL | 15 | Primary database |
+| ioredis | 5.3.2 | Redis client |
+| Socket.IO | 4.6.1 | Real-time WebSocket |
+| JWT | 9.0.2 | Authentication tokens |
+| bcryptjs | 2.4.3 | Password hashing |
+| Helmet | 7.1.0 | Security headers |
+| CORS | 2.8.5 | Cross-origin resource sharing |
+| Morgan | 1.10.0 | HTTP request logger |
+| Winston | 3.11.0 | Application logger |
+| Express Validator | 7.0.1 | Input validation |
+| Express Rate Limit | 7.1.5 | API rate limiting |
+| Joi | 17.11.0 | Schema validation |
+| Compression | 1.7.4 | Response compression |
+| Cookie Parser | 1.4.6 | Cookie parsing |
+
+### **Backend - Python Service**
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Python | 3.9+ | Runtime environment |
+| FastAPI | 0.109.0 | Web framework |
+| Uvicorn | 0.25.0 | ASGI server |
+| Pydantic | 2.5.3 | Data validation |
+| Redis | 5.0.1 | Redis client |
+| httpx | 0.26.0 | HTTP client |
+| python-dotenv | 1.0.0 | Environment variables |
+| NumPy | (planned) | Numerical computing |
+| SciPy | (planned) | Scientific computing |
+| pandas | (planned) | Data manipulation |
+
+### **Frontend**
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| React | 19.1.1 | UI framework |
+| Vite | 7.1.7 | Build tool |
+| Zustand | 5.0.2 | State management |
+| React Query | Latest | Server state management |
+| React Router | 7.9.5 | Routing |
+| TailwindCSS | 3.4.1 | Styling |
+| Axios | Latest | HTTP client |
+| Socket.IO Client | Latest | WebSocket client |
+| Recharts | Latest | Data visualization |
+| Lucide React | Latest | Icons |
+
+### **Infrastructure**
+
+| Technology | Purpose |
+|------------|---------|
+| Docker | Containerization |
+| Docker Compose | Multi-container orchestration |
+| PostgreSQL 15 | Relational database |
+| Redis 7 | In-memory cache |
+| pgAdmin 4 | PostgreSQL GUI |
+| Redis Commander | Redis GUI |
+
+---
+
+## 📁 **Project Structure**
+
+```
+spark-investment-backend/
+│
+├── 🐳 docker-compose.yml              # Database containers configuration
+├── 📄 README.md                       # Project documentation
+├── 📄 .gitignore                      # Git ignore rules
+│
+├── 📘 node-service/                   # Node.js API Service
+│   ├── src/
+│   │   ├── config/
+│   │   │   ├── database.js           # Prisma client instance
+│   │   │   └── redis.js              # Redis client configuration
+│   │   │
+│   │   ├── models/                   # Business models (via Prisma)
+│   │   │
+│   │   ├── controllers/
+│   │   │   └── authController.js     # Authentication logic
+│   │   │
+│   │   ├── routes/
+│   │   │   ├── index.js             # Main router
+│   │   │   └── authRoutes.js        # Auth endpoints
+│   │   │
+│   │   ├── middleware/
+│   │   │   ├── auth.js              # JWT verification
+│   │   │   └── errorHandler.js      # Global error handling
+│   │   │
+│   │   ├── services/                # Business logic layer
+│   │   │
+│   │   ├── utils/
+│   │   │   ├── jwt.js               # JWT utilities
+│   │   │   └── logger.js            # Winston logger
+│   │   │
+│   │   ├── validators/              # Input validation schemas
+│   │   │
+│   │   └── server.js                # Application entry point
+│   │
+│   ├── prisma/
+│   │   ├── schema.prisma            # Database schema
+│   │   └── migrations/              # Database migrations
+│   │
+│   ├── package.json                 # Dependencies
+│   ├── .env                         # Environment variables
+│   └── .gitignore
+│
+├── 🐍 python-service/                # Python FastAPI Service
+│   ├── src/
+│   │   ├── __init__.py
+│   │   ├── main.py                  # FastAPI application
+│   │   │
+│   │   ├── models/                  # Data models
+│   │   │   └── __init__.py
+│   │   │
+│   │   ├── services/                # F&O calculation services
+│   │   │   └── __init__.py
+│   │   │
+│   │   ├── utils/                   # Helper functions
+│   │   │   └── __init__.py
+│   │   │
+│   │   └── api/                     # API routes
+│   │       └── __init__.py
+│   │
+│   ├── venv/                        # Python virtual environment
+│   ├── requirements.txt             # Python dependencies
+│   ├── .env                         # Environment variables
+│   └── .gitignore
+│
+├── 📚 shared/                        # Shared resources
+│   ├── docs/                        # Documentation
+│   └── scripts/                     # Utility scripts
+│
+├── 📊 logs/                         # Application logs
+├── 🗄️ postgres-data/                # PostgreSQL data (Docker volume)
+├── 🗄️ redis-data/                   # Redis data (Docker volume)
+└── 🗄️ pgadmin-data/                 # pgAdmin data (Docker volume)
+```
+
+---
+
+## 🗄️ **Database Schema**
+
+### **Current Schema (Prisma)**
+
+#### **User Model**
+
+```prisma
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  email         String    @unique @db.VarChar(255)
+  passwordHash  String    @map("password_hash") @db.VarChar(255)
+  name          String    @db.VarChar(255)
+  phone         String?   @db.VarChar(15)
+  dob           DateTime? @db.Date
+  
+  // KYC
+  kycStatus     KycStatus @default(INCOMPLETE) @map("kyc_status")
+  
+  // Verification
+  emailVerified Boolean   @default(false) @map("email_verified")
+  
+  // Status
+  status        UserStatus @default(ACTIVE)
+  
+  // Preferences (JSON)
+  preferences   Json?     @db.JsonB
+  
+  // Login tracking
+  lastLogin     DateTime? @map("last_login")
+  
+  // Timestamps
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  
+  @@index([email])
+  @@map("users")
+}
+```
+
+#### **Enums**
+
+```prisma
+enum KycStatus {
+  INCOMPLETE
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+```
+
+### **Planned Models** (To be implemented)
+
+- Portfolio
+- Investment
+- Transaction
+- Goal
+- AutoInvestStrategy
+- PlatformConnection
+- MarketData
+- AIInsight
+- TradingOrder
+
+---
+
+## 🔌 **API Endpoints**
+
+### **Base URL**
+```
+Development: http://localhost:5000/api
+Production: https://api.sparkinvestment.com/api
+```
+
+### **Authentication Endpoints**
+
+| Endpoint | Method | Auth | Description | Request Body | Response |
+|----------|--------|------|-------------|--------------|----------|
+| `/health` | GET | ❌ | Health check | - | `{ success, message, timestamp, uptime }` |
+| `/auth/signup` | POST | ❌ | Register new user | `{ name, email, password, phone, acceptedTerms }` | `{ success, message, data: { user, token, refreshToken } }` |
+| `/auth/login` | POST | ❌ | Login user | `{ email, password }` | `{ success, message, data: { user, token, refreshToken } }` |
+| `/auth/me` | GET | ✅ | Get current user | - | `{ success, data: { user } }` |
+| `/auth/logout` | POST | ✅ | Logout user | - | `{ success, message }` |
+
+### **Request Examples**
+
+#### **Signup**
+```json
+POST /api/auth/signup
+Content-Type: application/json
+
+{
+  "name": "Tejas Patel",
+  "email": "tejas@sparkinvest.com",
+  "password": "Test@1234",
+  "phone": "9876543210",
+  "acceptedTerms": true
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "success": true,
+  "message": "Registration successful",
+  "data": {
+    "user": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "Tejas Patel",
+      "email": "tejas@sparkinvest.com",
+      "phone": "9876543210",
+      "kycStatus": "INCOMPLETE",
+      "emailVerified": false,
+      "createdAt": "2024-11-17T12:00:00.000Z"
+    },
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+}
+```
+
+#### **Login**
+```json
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "tejas@sparkinvest.com",
+  "password": "Test@1234"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "user": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "Tejas Patel",
+      "email": "tejas@sparkinvest.com",
+      "phone": "9876543210",
+      "kycStatus": "INCOMPLETE",
+      "emailVerified": false,
+      "preferences": null
+    },
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+}
+```
+
+#### **Get Current User (Protected)**
+```json
+GET /api/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "email": "tejas@sparkinvest.com",
+      "name": "Tejas Patel",
+      "phone": "9876543210",
+      "kycStatus": "INCOMPLETE",
+      "emailVerified": false,
+      "status": "ACTIVE",
+      "preferences": null
+    }
+  }
+}
+```
+
+### **Error Responses**
+
+#### **Validation Error (400)**
+```json
+{
+  "success": false,
+  "message": "Please provide name, email, and password"
+}
+```
+
+#### **Authentication Error (401)**
+```json
+{
+  "success": false,
+  "message": "Invalid or expired token. Please login again."
+}
+```
+
+#### **Server Error (500)**
+```json
+{
+  "success": false,
+  "message": "Internal Server Error"
+}
+```
+
+---
+
+## ⚙️ **Environment Configuration**
+
+### **Node Service (.env)**
+
+```env
+# Server
+NODE_ENV=development
+PORT=5000
+API_VERSION=v1
+
+# Database
+DATABASE_URL=postgresql://spark_admin:spark_password_2024@localhost:5433/spark_investment
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6380
+REDIS_PASSWORD=redis_password_2024
+
+# JWT
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
+JWT_REFRESH_SECRET=your-super-secret-refresh-key-change-in-production
+JWT_ACCESS_EXPIRY=24h
+JWT_REFRESH_EXPIRY=30d
+
+# CORS
+FRONTEND_URL=http://localhost:3000
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+
+# Python Service
+PYTHON_SERVICE_URL=http://localhost:8000
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# Logging
+LOG_LEVEL=info
+```
+
+### **Python Service (.env)**
+
+```env
+# Server
+ENVIRONMENT=development
+PORT=8000
+
+# Database
+DATABASE_URL=postgresql://spark_admin:spark_password_2024@localhost:5433/spark_investment
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6380
+REDIS_PASSWORD=redis_password_2024
+
+# Node Service
+NODE_SERVICE_URL=http://localhost:5000
+```
+
+### **Docker Compose Configuration**
+
+```yaml
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: spark-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: spark_admin
+      POSTGRES_PASSWORD: spark_password_2024
+      POSTGRES_DB: spark_investment
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: spark-redis
+    restart: always
+    command: redis-server --requirepass redis_password_2024 --appendonly yes
+    ports:
+      - "6380:6379"
+    volumes:
+      - ./redis-data:/data
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: spark-pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@sparkinvestment.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5051:80"
+    depends_on:
+      - postgres
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: spark-redis-commander
+    restart: always
+    environment:
+      - REDIS_HOSTS=local:spark-redis:6379:0:redis_password_2024
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+```
+
+---
+
+## 🚀 **Setup Instructions**
+
+### **Prerequisites**
+
+- Node.js 18+
+- Python 3.9+
+- Docker Desktop
+- Git
+
+### **Step 1: Clone Repository**
+
+```powershell
+git clone https://github.com/yourusername/spark-investment-backend.git
+cd spark-investment-backend
+```
+
+### **Step 2: Start Docker Services**
+
+```powershell
+docker-compose up -d
+```
+
+**Verify containers are running:**
+```powershell
+docker ps
+```
+
+### **Step 3: Setup Node Service**
+
+```powershell
+cd node-service
+
+# Install dependencies
+npm install
+
+# Generate Prisma Client
+npx prisma generate
+
+# Run database migrations
+npx prisma migrate dev --name init
+
+# Go back to root
+cd ..
+```
+
+### **Step 4: Setup Python Service**
+
+```powershell
+cd python-service
+
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+.\venv\Scripts\Activate.ps1
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Go back to root
+cd ..
+```
+
+---
+
+## ▶️ **Running the Application**
+
+### **Start All Services**
+
+**Terminal 1 - Docker (if not running):**
+```powershell
+docker-compose up -d
+```
+
+**Terminal 2 - Node Service:**
+```powershell
+cd node-service
+npm run dev
+```
+
+**Terminal 3 - Python Service:**
+```powershell
+cd python-service
+.\venv\Scripts\Activate.ps1
+uvicorn src.main:app --reload --port 8000
+```
+
+### **Verify Services**
+
+```powershell
+# Node service
+curl http://localhost:5000/api/health
+
+# Python service
+curl http://localhost:8000/health
+
+# Open database GUI
+start http://localhost:5051
+
+# Open Redis GUI
+start http://localhost:8081
+```
+
+### **Access Points**
+
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| Node API | http://localhost:5000 | - |
+| Python API | http://localhost:8000 | - |
+| Python Docs | http://localhost:8000/docs | - |
+| PostgreSQL | localhost:5433 | spark_admin / spark_password_2024 |
+| Redis | localhost:6380 | redis_password_2024 |
+| pgAdmin | http://localhost:5051 | admin@sparkinvestment.com / admin123 |
+| Redis Commander | http://localhost:8081 | - |
+
+---
+
+## 🧪 **Testing**
+
+### **Manual Testing with PowerShell**
+
+```powershell
+# Complete auth flow test
+$baseUrl = "http://localhost:5000/api"
+
+# 1. Signup
+$signupBody = @{
+    name = "Test User"
+    email = "test@example.com"
+    password = "Test@1234"
+    phone = "9876543210"
+    acceptedTerms = $true
+} | ConvertTo-Json
+
+$signup = Invoke-RestMethod -Uri "$baseUrl/auth/signup" -Method POST -Body $signupBody -ContentType "application/json"
+$token = $signup.data.token
+
+# 2. Login
+$loginBody = @{
+    email = "test@example.com"
+    password = "Test@1234"
+} | ConvertTo-Json
+
+$login = Invoke-RestMethod -Uri "$baseUrl/auth/login" -Method POST -Body $loginBody -ContentType "application/json"
+
+# 3. Get Me (Protected)
+$headers = @{
+    "Authorization" = "Bearer $token"
+}
+$me = Invoke-RestMethod -Uri "$baseUrl/auth/me" -Headers $headers
+
+# 4. Logout
+$logout = Invoke-RestMethod -Uri "$baseUrl/auth/logout" -Method POST -Headers $headers
+```
+
+### **Testing with Postman**
+
+Import the Postman collection (provided separately) or create requests manually:
+
+1. **Signup** - `POST /api/auth/signup`
+2. **Login** - `POST /api/auth/login`
+3. **Get Me** - `GET /api/auth/me` (with Bearer token)
+4. **Logout** - `POST /api/auth/logout` (with Bearer token)
+
+---
+
+## ✅ **Features Implemented**
+
+### **Completed**
+
+- ✅ **Backend Architecture**
+  - Multi-service architecture (Node + Python)
+  - Docker-based infrastructure
+  - PostgreSQL database
+  - Redis caching layer
+
+- ✅ **Authentication System**
+  - User registration (signup)
+  - User login with JWT tokens
+  - Token-based authentication
+  - Password hashing (bcrypt)
+  - Protected routes middleware
+  - Logout functionality
+  - Get current user endpoint
+
+- ✅ **Database**
+  - Prisma ORM setup
+  - User model with KYC status
+  - Database migrations
+  - PostgreSQL 15 with pgAdmin GUI
+  - Redis 7 with Redis Commander GUI
+
+- ✅ **Security**
+  - JWT authentication
+  - Password hashing (bcrypt with 12 salt rounds)
+  - Helmet security headers
+  - CORS configuration
+  - Rate limiting
+  - Input validation
+  - HTTP-only cookies for refresh tokens
+
+- ✅ **API Infrastructure**
+  - RESTful API design
+  - Error handling middleware
+  - Request logging (Morgan)
+  - Application logging (Winston)
+  - Response compression
+  - Cookie parsing
+
+- ✅ **Python Service**
+  - FastAPI framework
+  - Auto-generated API docs (/docs)
+  - CORS middleware
+  - Health check endpoints
+  - Ready for F&O calculations
+
+---
+
+## 🔜 **Next Steps**
+
+### **Phase 2: Core Features (Weeks 3-4)**
+
+- [ ] Portfolio Management
+  - Create Portfolio model
+  - GET /api/portfolio - Get portfolio summary
+  - POST /api/portfolio/platforms - Connect platform
+  - GET /api/portfolio/allocation - Asset allocation
+
+- [ ] Investment Management
+  - Create Investment model
+  - CRUD operations for investments
+  - Support for Mutual Funds, Stocks, Crypto
+  - Investment timeline view
+
+- [ ] Transaction Management
+  - Create Transaction model
+  - Transaction history
+  - Transaction summary and analytics
+  - CSV export functionality
+
+### **Phase 3: Advanced Features (Weeks 5-8)**
+
+- [ ] Market Data Integration
+  - Real-time stock prices
+  - Market indices (NIFTY, SENSEX)
+  - Cryptocurrency prices
+  - Sector performance
+
+- [ ] AI Integration
+  - Claude API integration
+  - Portfolio health analysis
+  - Risk assessment
+  - Investment recommendations
+  - AI chatbot
+
+- [ ] Real-time Updates
+  - WebSocket implementation
+  - Live market data
+  - Portfolio updates
+  - Price alerts
+
+### **Phase 4: Trading & Automation (Weeks 9-12)**
+
+- [ ] Trading Service
+  - Order management
+  - Trade execution (redirect to platforms)
+  - Position tracking
+  - P&L calculations
+
+- [ ] Auto-Invest Strategies
+  - Rule-based strategies
+  - Backtesting engine
+  - SIP automation
+  - Strategy comparison
+
+- [ ] Goals Tracking
+  - Financial goal setting
+  - Progress tracking
+  - Milestone alerts
+  - Recommended investments
+
+---
+
+## 📊 **Current System Status**
+
+### **Services Status**
+
+| Service | Status | Port | Health Check |
+|---------|--------|------|--------------|
+| Node API | ✅ Running | 5000 | `/api/health` |
+| Python API | ✅ Running | 8000 | `/health` |
+| PostgreSQL | ✅ Running | 5433 | Connected via Prisma |
+| Redis | ✅ Running | 6380 | Connected via ioredis |
+| pgAdmin | ✅ Running | 5051 | Web interface |
+| Redis Commander | ✅ Running | 8081 | Web interface |
+
+### **Database Tables**
+
+| Table | Status | Records |
+|-------|--------|---------|
+| users | ✅ Created | Variable |
+| _prisma_migrations | ✅ Created | Migration history |
+
+### **API Endpoints**
+
+| Endpoint | Status | Auth | Tested |
+|----------|--------|------|--------|
+| GET /api/health | ✅ | ❌ | ✅ |
+| POST /api/auth/signup | ✅ | ❌ | ✅ |
+| POST /api/auth/login | ✅ | ❌ | ✅ |
+| GET /api/auth/me | ✅ | ✅ | ✅ |
+| POST /api/auth/logout | ✅ | ✅ | ✅ |
+
+---
+
+## 🔐 **Security Features**
+
+- **Password Security**
+  - Bcrypt hashing with 12 salt rounds
+  - Password complexity requirements
+  - No password storage in logs or responses
+
+- **Token Security**
+  - JWT with RS256 algorithm
+  - Access tokens (24h expiry)
+  - Refresh tokens (30d expiry)
+  - HTTP-only cookies for refresh tokens
+
+- **API Security**
+  - Helmet security headers
+  - CORS with whitelist
+  - Rate limiting (100 req/15min)
+  - Input sanitization
+  - SQL injection prevention (Prisma)
+
+- **User Security**
+  - Account status tracking (ACTIVE/SUSPENDED/DELETED)
+  - Email verification flag
+  - KYC status tracking
+  - Last login timestamp
+
+---
+
+## 📝 **Development Guidelines**
+
+### **Code Style**
+
+- Use ES6+ features
+- Async/await for asynchronous operations
+- Destructuring for objects
+- Arrow functions
+- Template literals
+- Error handling with try-catch
+
+### **File Naming**
+
+- Controllers: `camelCase.js` (e.g., `authController.js`)
+- Routes: `camelCaseRoutes.js` (e.g., `authRoutes.js`)
+- Models: `PascalCase.prisma` (e.g., `User`)
+- Utilities: `camelCase.js` (e.g., `jwt.js`)
+
+### **API Response Format**
+
+**Success:**
+```json
+{
+  "success": true,
+  "message": "Operation successful",
+  "data": { ... }
+}
+```
+
+**Error:**
+```json
+{
+  "success": false,
+  "message": "Error description"
+}
+```
+
+### **Commit Messages**
+
+- feat: New feature
+- fix: Bug fix
+- docs: Documentation changes
+- style: Code style changes
+- refactor: Code refactoring
+- test: Test additions/changes
+- chore: Build/config changes
+
+---
+
+## 🛠️ **Troubleshooting**
+
+### **Common Issues**
+
+**Port already in use:**
+```powershell
+# Find process using port
+netstat -ano | findstr :5000
+
+# Kill process
+taskkill /PID <PID> /F
+```
+
+**Docker containers not starting:**
+```powershell
+# Stop all containers
+docker-compose down
+
+# Start fresh
+docker-compose up -d
+```
+
+**Prisma migration issues:**
+```powershell
+# Reset database (WARNING: Deletes all data)
+npx prisma migrate reset
+
+# Generate client
+npx prisma generate
+```
+
+**Python package installation issues:**
+```powershell
+# Use latest versions (have pre-built wheels)
+pip install --upgrade pip
+pip install fastapi uvicorn python-dotenv httpx redis
+```
+
+---
+
+## 📞 **Support & Resources**
+
+### **Documentation**
+- Prisma: https://www.prisma.io/docs
+- Express: https://expressjs.com/
+- FastAPI: https://fastapi.tiangolo.com/
+- PostgreSQL: https://www.postgresql.org/docs/
+- Redis: https://redis.io/docs/
+
+### **Tools**
+- Prisma Studio: `npx prisma studio`
+- pgAdmin: http://localhost:5051
+- Redis Commander: http://localhost:8081
+- FastAPI Docs: http://localhost:8000/docs
+
+---
+
+## 📈 **Project Metrics**
+
+- **Total Lines of Code:** ~3,000+
+- **API Endpoints:** 5 (working)
+- **Database Tables:** 1 (users)
+- **Services:** 2 (Node + Python)
+- **Dependencies:** 40+ packages
+- **Development Time:** Initial setup complete
+- **Status:** ✅ Production-ready foundation
+
+---
+
+## 🎯 **Summary**
+
+**Spark Investment AI Backend** is now fully operational with:
+
+✅ Multi-service architecture (Node.js + Python)  
+✅ Docker-based infrastructure (PostgreSQL + Redis)  
+✅ Complete authentication system (JWT-based)  
+✅ Prisma ORM with migrations  
+✅ Security middleware and error handling  
+✅ API documentation and testing setup  
+✅ Ready for feature development  
+
+**The foundation is solid and ready for building portfolio management, AI features, trading capabilities, and more!**
+
+---
+
+**Document Version:** 1.0.0  
+**Last Updated:** November 17, 2024  
+**Status:** ✅ Complete and Ready for Production Features

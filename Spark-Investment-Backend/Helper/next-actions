@@ -1,0 +1,578 @@
+# 🎯 **Next Phase - Comprehensive Development Plan**
+
+---
+
+## 📊 **Current Status Overview**
+
+### **✅ What We Have**
+- Multi-service backend architecture (Node + Python)
+- Docker infrastructure (PostgreSQL + Redis)
+- Authentication system (signup, login, JWT)
+- User model and database
+- Security middleware
+- Error handling
+- API foundation
+
+### **🎯 What We Need**
+- Portfolio management
+- Investment tracking
+- Transaction history
+- AI analysis integration
+- Real-time market data
+- Trading capabilities
+- Frontend integration
+
+---
+
+## 🗺️ **Strategic Roadmap**
+
+### **Priority Matrix**
+
+| Feature | Business Value | Technical Complexity | Dependencies | Priority |
+|---------|---------------|---------------------|--------------|----------|
+| Portfolio Management | HIGH | Medium | Auth ✅ | 🔥 **P0** |
+| Investment CRUD | HIGH | Low | Portfolio | 🔥 **P0** |
+| Transaction History | MEDIUM | Low | Investment | ⭐ **P1** |
+| Frontend Integration | HIGH | Medium | Auth, Portfolio | ⭐ **P1** |
+| Market Data | MEDIUM | Medium | None | ⭐ **P1** |
+| AI Analysis | HIGH | High | Portfolio, Investment | 🎯 **P2** |
+| Live Trading | MEDIUM | High | All above | 🎯 **P2** |
+| Auto-Invest | LOW | High | All above | 📋 **P3** |
+
+---
+
+## 📅 **12-Week Development Plan**
+
+### **🔥 Phase 1: Core Features (Weeks 1-4) - CRITICAL**
+
+**Goal:** Build the essential features that make the platform usable
+
+#### **Week 1-2: Portfolio & Investment Management**
+
+**Week 1 - Database Models & API Foundation**
+```
+Day 1-2: Portfolio Model
+  ├─ Create Portfolio schema (Prisma)
+  ├─ Portfolio summary (total value, allocation)
+  ├─ Platform connections
+  └─ Performance metrics
+
+Day 3-4: Investment Model
+  ├─ Investment schema (Mutual Funds, Stocks, Crypto)
+  ├─ Relationships (User → Portfolio → Investments)
+  ├─ Current value calculation
+  └─ Returns calculation
+
+Day 5: Database Migration & Testing
+  ├─ Run Prisma migrations
+  ├─ Test relationships
+  ├─ Seed sample data
+  └─ Test queries
+```
+
+**Week 2 - Portfolio & Investment APIs**
+```
+Day 1-2: Portfolio APIs
+  ├─ GET /api/portfolio - Get portfolio summary
+  ├─ GET /api/portfolio/platforms - Get connected platforms
+  ├─ POST /api/portfolio/platform - Add platform
+  ├─ DELETE /api/portfolio/platform/:id - Remove platform
+  └─ GET /api/portfolio/allocation - Asset allocation
+
+Day 3-4: Investment APIs
+  ├─ GET /api/investments - Get all investments
+  ├─ POST /api/investments - Add investment
+  ├─ GET /api/investments/:id - Get single investment
+  ├─ PUT /api/investments/:id - Update investment
+  ├─ DELETE /api/investments/:id - Delete investment
+  └─ GET /api/investments/timeline - Timeline view
+
+Day 5: Testing & Documentation
+  ├─ Postman collection
+  ├─ Integration tests
+  └─ API documentation
+```
+
+#### **Week 3: Transaction Management**
+
+```
+Day 1-2: Transaction Model & APIs
+  ├─ Transaction schema (Buy, Sell, Dividend, etc.)
+  ├─ GET /api/transactions - Get transaction history
+  ├─ POST /api/transactions - Add transaction
+  ├─ GET /api/transactions/summary - Summary & analytics
+  └─ GET /api/transactions/export - Export CSV
+
+Day 3-4: Analytics & Calculations
+  ├─ Total invested amount
+  ├─ Current value calculation
+  ├─ Returns calculation (absolute & percentage)
+  ├─ P&L tracking
+  └─ Tax calculations (basic)
+
+Day 5: Testing
+  ├─ Unit tests for calculations
+  ├─ API testing
+  └─ Edge cases
+```
+
+#### **Week 4: Frontend Integration**
+
+```
+Day 1-2: Connect React Frontend to Backend
+  ├─ Update API base URL (remove MOCK_MODE)
+  ├─ Test authentication flow
+  ├─ Fix CORS issues
+  └─ Test protected routes
+
+Day 3-4: Build Dashboard Data Flow
+  ├─ Fetch portfolio summary
+  ├─ Display investments
+  ├─ Show transaction history
+  └─ Real-time updates
+
+Day 5: UI/UX Testing
+  ├─ Test all user flows
+  ├─ Fix bugs
+  └─ Performance optimization
+```
+
+**✅ Milestone 1 Deliverables:**
+- Working portfolio management
+- Investment CRUD operations
+- Transaction tracking
+- Frontend connected to backend
+- Basic analytics dashboard
+
+---
+
+### **⭐ Phase 2: Market Data & Analytics (Weeks 5-8)**
+
+#### **Week 5: Market Data Integration**
+
+```
+Day 1-2: Market Data Service Setup
+  ├─ Choose API provider (Alpha Vantage / Yahoo Finance)
+  ├─ Create MarketData model
+  ├─ Build data fetching service
+  └─ Cache with Redis (5-minute cache)
+
+Day 3-4: Market Data APIs
+  ├─ GET /api/market/indices - NIFTY, SENSEX, etc.
+  ├─ GET /api/market/quote/:symbol - Stock quote
+  ├─ GET /api/market/crypto - Crypto prices
+  ├─ GET /api/market/gainers-losers
+  └─ GET /api/market/sectors - Sector performance
+
+Day 5: Background Jobs
+  ├─ Schedule market data updates (every 5 min)
+  ├─ Update portfolio values automatically
+  └─ Cache management
+```
+
+#### **Week 6: WebSocket for Real-time Updates**
+
+```
+Day 1-2: Socket.IO Setup
+  ├─ Configure Socket.IO server
+  ├─ Authentication for WebSocket
+  ├─ Event structure design
+  └─ Connection handling
+
+Day 3-4: Real-time Events
+  ├─ market:update - Live market data
+  ├─ portfolio:update - Portfolio value changes
+  ├─ price:alert - Price alerts
+  └─ trade:notification - Trade updates
+
+Day 5: Frontend WebSocket Integration
+  ├─ Connect Socket.IO client
+  ├─ Handle real-time updates
+  └─ Update UI automatically
+```
+
+#### **Week 7-8: AI Analysis (Claude API Integration)**
+
+```
+Week 7:
+Day 1-2: AI Service Setup
+  ├─ Install Anthropic SDK
+  ├─ Create AIAnalysis model
+  ├─ Build prompt templates
+  └─ Response parsing
+
+Day 3-4: AI APIs
+  ├─ POST /api/ai/analyze-portfolio
+  ├─ POST /api/ai/risk-assessment
+  ├─ POST /api/ai/recommendations
+  └─ GET /api/ai/insights
+
+Day 5: Testing & Optimization
+  ├─ Test prompts
+  ├─ Response caching
+  └─ Cost optimization
+
+Week 8:
+Day 1-3: AI Chatbot
+  ├─ POST /api/ai/chat - Conversational AI
+  ├─ Context management
+  ├─ Chat history
+  └─ Streaming responses
+
+Day 4-5: AI Features in Frontend
+  ├─ AI insights dashboard
+  ├─ Chat interface
+  └─ Recommendation cards
+```
+
+**✅ Milestone 2 Deliverables:**
+- Real-time market data
+- Live portfolio updates
+- AI-powered analysis
+- Investment recommendations
+- AI chatbot
+
+---
+
+### **🎯 Phase 3: Advanced Features (Weeks 9-12)**
+
+#### **Week 9: Trading Integration**
+
+```
+Day 1-2: Trading Model & Order Management
+  ├─ TradingOrder model
+  ├─ Order status tracking
+  ├─ Position management
+  └─ P&L calculations
+
+Day 3-4: Trading APIs
+  ├─ POST /api/trading/orders - Place order
+  ├─ GET /api/trading/orders - Get orders
+  ├─ DELETE /api/trading/orders/:id - Cancel order
+  ├─ GET /api/trading/positions - Active positions
+  └─ GET /api/trading/history - Trade history
+
+Day 5: Platform Redirects
+  ├─ Zerodha integration (redirect to platform)
+  ├─ Order confirmation flow
+  └─ Error handling
+```
+
+#### **Week 10: Goals Management**
+
+```
+Day 1-2: Goals Model & APIs
+  ├─ Goal schema (Amount, Target Date, Type)
+  ├─ GET /api/goals - Get all goals
+  ├─ POST /api/goals - Create goal
+  ├─ PUT /api/goals/:id - Update goal
+  └─ DELETE /api/goals/:id - Delete goal
+
+Day 3-4: Goal Analytics
+  ├─ Progress calculation
+  ├─ Milestone tracking
+  ├─ Recommended investments
+  └─ Projected completion date
+
+Day 5: Goal UI
+  ├─ Goals dashboard
+  ├─ Progress visualization
+  └─ Notifications
+```
+
+#### **Week 11: Auto-Invest Strategies**
+
+```
+Day 1-2: Strategy Model & Builder
+  ├─ AutoInvestStrategy model
+  ├─ Rule-based system (if-then rules)
+  ├─ Trigger conditions
+  └─ Execution logic
+
+Day 3-4: Backtesting Engine
+  ├─ Historical data analysis
+  ├─ Strategy simulation
+  ├─ Performance metrics
+  └─ Risk analysis
+
+Day 5: Strategy APIs
+  ├─ GET /api/auto-invest/strategies
+  ├─ POST /api/auto-invest/strategies
+  ├─ POST /api/auto-invest/backtest
+  └─ GET /api/auto-invest/performance
+```
+
+#### **Week 12: Polish & Production Prep**
+
+```
+Day 1-2: Security Hardening
+  ├─ Security audit
+  ├─ Input validation review
+  ├─ Rate limiting tuning
+  └─ Error handling improvements
+
+Day 3: Performance Optimization
+  ├─ Database query optimization
+  ├─ API response caching
+  ├─ Redis strategy
+  └─ Load testing
+
+Day 4: Documentation
+  ├─ API documentation (Swagger)
+  ├─ User guide
+  ├─ Developer docs
+  └─ Deployment guide
+
+Day 5: Final Testing
+  ├─ End-to-end testing
+  ├─ Security testing
+  ├─ Performance testing
+  └─ Bug fixes
+```
+
+**✅ Milestone 3 Deliverables:**
+- Trading capabilities
+- Goals tracking
+- Auto-invest strategies
+- Production-ready system
+- Complete documentation
+
+---
+
+## 🎯 **Immediate Next Steps (This Week)**
+
+### **Priority 1: Portfolio & Investment Models**
+
+**Start with database models - Foundation for everything else!**
+
+#### **Action Items for Tomorrow:**
+
+1. **Create Portfolio Schema** (2 hours)
+```prisma
+model Portfolio {
+  id              String    @id @default(uuid())
+  userId          String    @map("user_id")
+  totalValue      Decimal   @map("total_value")
+  investedAmount  Decimal   @map("invested_amount")
+  currentValue    Decimal   @map("current_value")
+  returns         Decimal
+  returnsPercent  Decimal   @map("returns_percent")
+  lastUpdated     DateTime  @map("last_updated")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  user            User      @relation(fields: [userId], references: [id])
+  platforms       Platform[]
+  investments     Investment[]
+  
+  @@map("portfolios")
+}
+```
+
+2. **Create Platform Schema** (1 hour)
+```prisma
+model Platform {
+  id            String    @id @default(uuid())
+  portfolioId   String    @map("portfolio_id")
+  name          String    // "Zerodha", "Groww", etc.
+  type          String    // "trading", "mutual_fund", "crypto"
+  connected     Boolean   @default(false)
+  apiKey        String?   @map("api_key")
+  apiSecret     String?   @map("api_secret")
+  lastSyncAt    DateTime? @map("last_sync_at")
+  createdAt     DateTime  @default(now())
+  
+  portfolio     Portfolio @relation(fields: [portfolioId], references: [id])
+  investments   Investment[]
+  
+  @@map("platforms")
+}
+```
+
+3. **Create Investment Schema** (2 hours)
+```prisma
+model Investment {
+  id              String    @id @default(uuid())
+  portfolioId     String    @map("portfolio_id")
+  platformId      String    @map("platform_id")
+  type            InvestmentType
+  symbol          String
+  name            String
+  quantity        Decimal
+  avgBuyPrice     Decimal   @map("avg_buy_price")
+  currentPrice    Decimal   @map("current_price")
+  investedAmount  Decimal   @map("invested_amount")
+  currentValue    Decimal   @map("current_value")
+  returns         Decimal
+  returnsPercent  Decimal   @map("returns_percent")
+  purchaseDate    DateTime  @map("purchase_date")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  portfolio       Portfolio @relation(fields: [portfolioId], references: [id])
+  platform        Platform  @relation(fields: [platformId], references: [id])
+  transactions    Transaction[]
+  
+  @@map("investments")
+}
+
+enum InvestmentType {
+  MUTUAL_FUND
+  STOCK
+  CRYPTO
+  ETF
+  BOND
+  GOLD
+}
+```
+
+4. **Update User Model with Relations** (30 min)
+```prisma
+model User {
+  // ... existing fields ...
+  portfolios      Portfolio[]
+}
+```
+
+5. **Run Migration** (15 min)
+```powershell
+cd node-service
+npx prisma migrate dev --name add_portfolio_investment_models
+npx prisma generate
+```
+
+---
+
+## 📋 **Week 1 Detailed Task List**
+
+### **Day 1: Database Models** ⏰ 6-8 hours
+
+- [ ] Create Portfolio schema in Prisma
+- [ ] Create Platform schema in Prisma
+- [ ] Create Investment schema in Prisma
+- [ ] Update User model with relations
+- [ ] Run Prisma migration
+- [ ] Test in Prisma Studio
+- [ ] Seed sample data
+
+### **Day 2: Portfolio Controller & Routes** ⏰ 6-8 hours
+
+- [ ] Create `portfolioController.js`
+  - [ ] `getPortfolioSummary()` - GET /api/portfolio
+  - [ ] `getConnectedPlatforms()` - GET /api/portfolio/platforms
+  - [ ] `connectPlatform()` - POST /api/portfolio/platform
+  - [ ] `disconnectPlatform()` - DELETE /api/portfolio/platform/:id
+- [ ] Create `portfolioRoutes.js`
+- [ ] Add routes to main router
+- [ ] Test with Postman
+
+### **Day 3: Investment Controller & Routes** ⏰ 6-8 hours
+
+- [ ] Create `investmentController.js`
+  - [ ] `getAllInvestments()` - GET /api/investments
+  - [ ] `addInvestment()` - POST /api/investments
+  - [ ] `getInvestment()` - GET /api/investments/:id
+  - [ ] `updateInvestment()` - PUT /api/investments/:id
+  - [ ] `deleteInvestment()` - DELETE /api/investments/:id
+- [ ] Create `investmentRoutes.js`
+- [ ] Add validation middleware
+- [ ] Test with Postman
+
+### **Day 4: Business Logic & Calculations** ⏰ 6-8 hours
+
+- [ ] Create `portfolioService.js`
+  - [ ] Calculate total portfolio value
+  - [ ] Calculate returns
+  - [ ] Asset allocation calculation
+  - [ ] Performance metrics
+- [ ] Create `investmentService.js`
+  - [ ] Update investment prices
+  - [ ] Calculate current value
+  - [ ] Calculate returns
+- [ ] Unit tests for calculations
+
+### **Day 5: Testing & Documentation** ⏰ 4-6 hours
+
+- [ ] Create Postman collection for Portfolio APIs
+- [ ] Create Postman collection for Investment APIs
+- [ ] Test all endpoints
+- [ ] Document API responses
+- [ ] Fix bugs
+- [ ] Update main documentation
+
+---
+
+## 🎯 **Decision Points**
+
+### **Option A: Follow the Plan (Recommended)**
+✅ Start with Portfolio & Investment models tomorrow
+✅ Build APIs incrementally
+✅ Test thoroughly at each step
+✅ Complete MVP in 4 weeks
+
+### **Option B: Parallel Development**
+⚠️ You build backend, I help with specific features
+⚠️ Faster but requires good coordination
+⚠️ Higher risk of integration issues
+
+### **Option C: Frontend First**
+⚠️ Connect existing frontend with mock data
+⚠️ Build UI/UX while backend is WIP
+⚠️ Good for demo, but backend must catch up
+
+---
+
+## ❓ **Questions to Decide**
+
+Before we start, let's clarify:
+
+1. **Development Pace**
+   - Full-time (8 hrs/day) or Part-time (2-4 hrs/day)?
+   - Want to finish Week 1 in 1 week or 2 weeks?
+
+2. **Priority Features**
+   - Must-have for MVP: Portfolio + Investments + Transactions?
+   - Or also need Market Data + AI right away?
+
+3. **Data Entry Strategy**
+   - Manual entry first (easy to build)?
+   - Or API integration from day 1 (complex)?
+
+4. **Testing Approach**
+   - Build → Test → Move on (agile)?
+   - Or build everything then test (waterfall)?
+
+5. **Frontend Integration**
+   - After backend is complete?
+   - Or parallel development?
+
+---
+
+## 🚀 **My Recommendation**
+
+**Start Tomorrow:**
+
+1. ✅ **Morning:** Create Portfolio, Platform, Investment models
+2. ✅ **Afternoon:** Run migration, test in Prisma Studio
+3. ✅ **Evening:** Create Portfolio controller & routes
+
+**This Week:**
+- Complete Portfolio & Investment APIs
+- Test with Postman
+- Have working CRUD for investments
+
+**By End of Month:**
+- Complete Phase 1 (Portfolio, Investment, Transactions)
+- Connect frontend
+- Have a working MVP
+
+---
+
+## 🎯 **What Do You Want to Do First?**
+
+**Option 1:** Start with database models (I'll provide exact code)  
+**Option 2:** Review the plan and adjust priorities  
+**Option 3:** Jump straight to a specific feature you want most  
+**Option 4:** Something else?
+
+**Tell me your preference and let's get started! 🚀**
