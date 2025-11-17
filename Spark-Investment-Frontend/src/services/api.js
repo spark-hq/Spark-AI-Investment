@@ -37,11 +37,102 @@ const apiClient = axios.create({
   },
 });
 
+// Flag to prevent multiple redirects
+let isRedirecting = false;
+
+// ===================================
+// Authentication API
+// ===================================
+export const authAPI = {
+  // Signup
+  signup: async (userData) => {
+    if (MOCK_MODE) {
+      await simulateDelay(1500);
+      return mockResponse({
+        success: true,
+        data: {
+          user: { id: 'mock_id', email: userData.email, name: userData.name },
+          token: 'mock_token',
+          refreshToken: 'mock_refresh_token',
+        },
+      });
+    }
+    const response = await apiClient.post('/auth/signup', userData);
+    return response.data;
+  },
+
+  // Login
+  login: async (email, password, rememberMe) => {
+    if (MOCK_MODE) {
+      await simulateDelay(1000);
+      return mockResponse({
+        success: true,
+        data: {
+          user: { id: 'mock_id', email, name: email.split('@')[0] },
+          token: 'mock_token',
+          refreshToken: 'mock_refresh_token',
+        },
+      });
+    }
+    const response = await apiClient.post('/auth/login', { email, password, rememberMe });
+    return response.data;
+  },
+
+  // Logout
+  logout: async () => {
+    if (MOCK_MODE) {
+      await simulateDelay(500);
+      return mockResponse({ success: true, message: 'Logged out successfully' });
+    }
+    const response = await apiClient.post('/auth/logout');
+    return response.data;
+  },
+
+  // Refresh Token
+  refreshToken: async (refreshToken) => {
+    if (MOCK_MODE) {
+      await simulateDelay(500);
+      return mockResponse({
+        success: true,
+        data: { token: 'new_mock_token', refreshToken: 'new_mock_refresh_token' },
+      });
+    }
+    const response = await apiClient.post('/auth/refresh', {}, {
+      headers: { Authorization: `Bearer ${refreshToken}` }
+    });
+    return response.data;
+  },
+
+  // Forgot Password
+  forgotPassword: async (email) => {
+    if (MOCK_MODE) {
+      await simulateDelay(1000);
+      return mockResponse({
+        success: true,
+        message: 'OTP sent to registered email and phone',
+        data: { otpSentTo: `em***@example.com`, expiresIn: 600 },
+      });
+    }
+    const response = await apiClient.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  // Reset Password
+  resetPassword: async (email, otp, newPassword) => {
+    if (MOCK_MODE) {
+      await simulateDelay(1000);
+      return mockResponse({ success: true, message: 'Password reset successfully' });
+    }
+    const response = await apiClient.post('/auth/reset-password', { email, otp, newPassword });
+    return response.data;
+  },
+};
+
 // Request interceptor (add auth tokens, logging)
 apiClient.interceptors.request.use(
   (config) => {
     // Add auth token if available
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem('spark_access_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -70,15 +161,23 @@ apiClient.interceptors.response.use(
     console.error('❌ Response Error:', error.response?.status, error.message);
 
     // Handle specific error codes
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !isRedirecting) {
       // Unauthorized - redirect to login
-      localStorage.removeItem('auth_token');
-      window.location.href = '/login';
+      isRedirecting = true;
+      localStorage.removeItem('spark_access_token');
+      localStorage.removeItem('spark_refresh_token');
+      
+      // Use setTimeout to ensure redirect happens after error is returned
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 100);
     }
 
     return Promise.reject(error);
   }
 );
+
+
 
 // ===================================
 // Portfolio API
@@ -86,26 +185,26 @@ apiClient.interceptors.response.use(
 export const portfolioAPI = {
   // Get portfolio summary
   getSummary: async () => {
-    console.log('🔍 getSummary - MOCK_MODE:', MOCK_MODE, '| env value:', import.meta.env.VITE_MOCK_MODE);
+    if (DEBUG_MODE) {
+      console.log('🔍 getSummary - MOCK_MODE:', MOCK_MODE);
+    }
     if (MOCK_MODE) {
-      console.log('✅ Using Mock Data - GET /api/portfolio/summary');
-      await simulateDelay(300);
+      await simulateDelay(800);
       return mockResponse(mockPortfolio.summary);
     }
-    console.log('🌐 Calling Real API - GET /api/portfolio/summary');
     const response = await apiClient.get('/portfolio/summary');
     return response.data;
   },
 
   // Get connected platforms
   getPlatforms: async () => {
-    console.log('🔍 getPlatforms - MOCK_MODE:', MOCK_MODE);
+    if (DEBUG_MODE) {
+      console.log('🔍 getPlatforms - MOCK_MODE:', MOCK_MODE);
+    }
     if (MOCK_MODE) {
-      console.log('✅ Using Mock Data - GET /api/portfolio/platforms');
-      await simulateDelay(300);
+      await simulateDelay(800);
       return mockResponse(mockPortfolio.platforms);
     }
-    console.log('🌐 Calling Real API - GET /api/portfolio/platforms');
     const response = await apiClient.get('/portfolio/platforms');
     return response.data;
   },
@@ -113,7 +212,7 @@ export const portfolioAPI = {
   // Get performance data
   getPerformance: async (period = '1M') => {
     if (MOCK_MODE) {
-      await simulateDelay(400);
+      await simulateDelay(800);
       return mockResponse(mockPortfolio.performance);
     }
     const response = await apiClient.get(`/portfolio/performance?period=${period}`);
@@ -123,7 +222,7 @@ export const portfolioAPI = {
   // Get asset allocation
   getAllocation: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(300);
+      await simulateDelay(800);
       return mockResponse(mockPortfolio.allocation);
     }
     const response = await apiClient.get('/portfolio/allocation');
@@ -133,7 +232,7 @@ export const portfolioAPI = {
   // Get top performers
   getTopPerformers: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(350);
+      await simulateDelay(800);
       return mockResponse(mockPortfolio.topPerformers);
     }
     const response = await apiClient.get('/portfolio/top-performers');
@@ -143,7 +242,7 @@ export const portfolioAPI = {
   // Get recent activity
   getRecentActivity: async (limit = 10) => {
     if (MOCK_MODE) {
-      await simulateDelay(250);
+      await simulateDelay(800);
       return mockResponse(mockPortfolio.recentActivity.slice(0, limit));
     }
     const response = await apiClient.get(`/portfolio/activity?limit=${limit}`);
@@ -163,7 +262,7 @@ export const portfolioAPI = {
   // Disconnect platform
   disconnectPlatform: async (platformId) => {
     if (MOCK_MODE) {
-      await simulateDelay(800);
+      await simulateDelay(1000);
       return mockResponse({ success: true, message: 'Platform disconnected' });
     }
     const response = await apiClient.delete(`/portfolio/platforms/${platformId}`);
@@ -178,7 +277,7 @@ export const investmentsAPI = {
   // Get all investments
   getAll: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(400);
+      await simulateDelay(800);
       return mockResponse(mockInvestments);
     }
     const response = await apiClient.get('/investments');
@@ -188,7 +287,7 @@ export const investmentsAPI = {
   // Get investment by ID
   getById: async (id) => {
     if (MOCK_MODE) {
-      await simulateDelay(300);
+      await simulateDelay(800);
       const allHoldings = [
         ...mockInvestments.mutualFunds,
         ...mockInvestments.stocks,
@@ -204,7 +303,7 @@ export const investmentsAPI = {
   // Get mutual funds
   getMutualFunds: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(350);
+      await simulateDelay(800);
       return mockResponse(mockInvestments.mutualFunds);
     }
     const response = await apiClient.get('/investments/mutual-funds');
@@ -214,7 +313,7 @@ export const investmentsAPI = {
   // Get stocks
   getStocks: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(350);
+      await simulateDelay(800);
       return mockResponse(mockInvestments.stocks);
     }
     const response = await apiClient.get('/investments/stocks');
@@ -224,7 +323,7 @@ export const investmentsAPI = {
   // Get crypto
   getCrypto: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(350);
+      await simulateDelay(800);
       return mockResponse(mockInvestments.crypto);
     }
     const response = await apiClient.get('/investments/crypto');
@@ -244,7 +343,7 @@ export const investmentsAPI = {
   // Update investment
   update: async (id, updates) => {
     if (MOCK_MODE) {
-      await simulateDelay(800);
+      await simulateDelay(1000);
       return mockResponse({ success: true, message: 'Investment updated' });
     }
     const response = await apiClient.put(`/investments/${id}`, updates);
@@ -254,7 +353,7 @@ export const investmentsAPI = {
   // Delete investment
   delete: async (id) => {
     if (MOCK_MODE) {
-      await simulateDelay(600);
+      await simulateDelay(1000);
       return mockResponse({ success: true, message: 'Investment deleted' });
     }
     const response = await apiClient.delete(`/investments/${id}`);
@@ -269,7 +368,7 @@ export const marketDataAPI = {
   // Get market indices
   getIndices: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(200);
+      await simulateDelay(800);
       return mockResponse(mockMarketData.indices);
     }
     const response = await apiClient.get('/market/indices');
@@ -279,7 +378,7 @@ export const marketDataAPI = {
   // Get top gainers
   getTopGainers: async (limit = 10) => {
     if (MOCK_MODE) {
-      await simulateDelay(300);
+      await simulateDelay(800);
       return mockResponse(mockMarketData.topGainers.slice(0, limit));
     }
     const response = await apiClient.get(`/market/gainers?limit=${limit}`);
@@ -289,7 +388,7 @@ export const marketDataAPI = {
   // Get top losers
   getTopLosers: async (limit = 10) => {
     if (MOCK_MODE) {
-      await simulateDelay(300);
+      await simulateDelay(800);
       return mockResponse(mockMarketData.topLosers.slice(0, limit));
     }
     const response = await apiClient.get(`/market/losers?limit=${limit}`);
@@ -299,7 +398,7 @@ export const marketDataAPI = {
   // Get sector performance
   getSectorPerformance: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(350);
+      await simulateDelay(800);
       return mockResponse(mockMarketData.sectorPerformance);
     }
     const response = await apiClient.get('/market/sectors');
@@ -309,7 +408,7 @@ export const marketDataAPI = {
   // Get stock quote
   getQuote: async (symbol) => {
     if (MOCK_MODE) {
-      await simulateDelay(250);
+      await simulateDelay(800);
       return mockResponse({
         symbol,
         price: 1500 + Math.random() * 500,
@@ -326,7 +425,7 @@ export const marketDataAPI = {
   // Get crypto market data
   getCryptoMarket: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(350);
+      await simulateDelay(800);
       return mockResponse(mockMarketData.cryptoMarket);
     }
     const response = await apiClient.get('/market/crypto');
@@ -336,7 +435,7 @@ export const marketDataAPI = {
   // Get forex rates
   getForexRates: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(300);
+      await simulateDelay(800);
       return mockResponse(mockMarketData.forexRates);
     }
     const response = await apiClient.get('/market/forex');
@@ -351,7 +450,7 @@ export const aiAPI = {
   // Get portfolio insights
   getPortfolioInsights: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(800);
+      await simulateDelay(1000);
       return mockResponse(mockAIAnalysis.portfolioInsights);
     }
     const response = await apiClient.get('/ai/insights');
@@ -371,7 +470,7 @@ export const aiAPI = {
   // Get risk analysis
   getRiskAnalysis: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(900);
+      await simulateDelay(1000);
       return mockResponse(mockAIAnalysis.riskAnalysis);
     }
     const response = await apiClient.get('/ai/risk-analysis');
@@ -381,7 +480,7 @@ export const aiAPI = {
   // Get market sentiment
   getMarketSentiment: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(600);
+      await simulateDelay(1000);
       return mockResponse(mockAIAnalysis.marketSentiment);
     }
     const response = await apiClient.get('/ai/market-sentiment');
@@ -405,7 +504,7 @@ export const aiAPI = {
   // Get quick insights
   getQuickInsights: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(500);
+      await simulateDelay(1000);
       return mockResponse(mockAIAnalysis.quickInsights);
     }
     const response = await apiClient.get('/ai/quick-insights');
@@ -415,13 +514,33 @@ export const aiAPI = {
   // Get investment-specific AI analysis
   getInvestmentAnalysis: async (investmentId) => {
     if (MOCK_MODE) {
-      await simulateDelay(700);
-      // Import aiAnalysisData to get per-investment analysis
-      const { aiAnalysisData } = await import('../data/aiAnalysisData.js');
-      const investmentAnalysis = aiAnalysisData[investmentId];
+      await simulateDelay(1000);
+      try {
+        // Import aiAnalysisData to get per-investment analysis
+        const { aiAnalysisData } = await import('../data/aiAnalysisData.js');
+        const investmentAnalysis = aiAnalysisData[investmentId];
 
-      if (!investmentAnalysis) {
-        // Return default analysis if investment not found
+        if (!investmentAnalysis) {
+          // Return default analysis if investment not found
+          return mockResponse({
+            investmentId,
+            recommendation: 'HOLD',
+            confidence: 75,
+            riskLevel: 'MEDIUM',
+            riskScore: 55,
+            volatility: 'Moderate',
+            healthScore: 70,
+            healthGrade: 'B',
+            valuation: 'Fair Value',
+            pros: ['No specific analysis available'],
+            cons: ['Limited data for this investment'],
+            aiExplanation: 'Detailed analysis for this investment is being generated.',
+          });
+        }
+
+        return mockResponse(investmentAnalysis);
+      } catch (error) {
+        console.error('Error loading AI analysis data:', error);
         return mockResponse({
           investmentId,
           recommendation: 'HOLD',
@@ -432,13 +551,11 @@ export const aiAPI = {
           healthScore: 70,
           healthGrade: 'B',
           valuation: 'Fair Value',
-          pros: ['No specific analysis available'],
-          cons: ['Limited data for this investment'],
-          aiExplanation: 'Detailed analysis for this investment is being generated.',
+          pros: ['Analysis data unavailable'],
+          cons: ['Unable to load detailed analysis'],
+          aiExplanation: 'Analysis data could not be loaded at this time.',
         });
       }
-
-      return mockResponse(investmentAnalysis);
     }
     const response = await apiClient.get(`/ai/investments/${investmentId}/analysis`);
     return response.data;
@@ -467,7 +584,7 @@ export const tradingAPI = {
   // Get trade history
   getTradeHistory: async (limit = 50) => {
     if (MOCK_MODE) {
-      await simulateDelay(400);
+      await simulateDelay(800);
       return mockResponse(mockTransactions.transactions.slice(0, limit));
     }
     const response = await apiClient.get(`/trading/history?limit=${limit}`);
@@ -477,7 +594,7 @@ export const tradingAPI = {
   // Get pending orders
   getPendingOrders: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(350);
+      await simulateDelay(800);
       return mockResponse([]);
     }
     const response = await apiClient.get('/trading/pending');
@@ -487,7 +604,7 @@ export const tradingAPI = {
   // Cancel order
   cancelOrder: async (orderId) => {
     if (MOCK_MODE) {
-      await simulateDelay(800);
+      await simulateDelay(1000);
       return mockResponse({ success: true, message: 'Order cancelled' });
     }
     const response = await apiClient.delete(`/trading/orders/${orderId}`);
@@ -502,7 +619,7 @@ export const transactionsAPI = {
   // Get all transactions
   getAll: async (filters = {}) => {
     if (MOCK_MODE) {
-      await simulateDelay(400);
+      await simulateDelay(800);
       return mockResponse(mockTransactions.transactions);
     }
     const response = await apiClient.get('/transactions', { params: filters });
@@ -512,7 +629,7 @@ export const transactionsAPI = {
   // Get transaction summary
   getSummary: async (period = '1M') => {
     if (MOCK_MODE) {
-      await simulateDelay(350);
+      await simulateDelay(800);
       return mockResponse(mockTransactions.summary);
     }
     const response = await apiClient.get(`/transactions/summary?period=${period}`);
@@ -539,7 +656,7 @@ export const autoInvestAPI = {
   // Get strategies
   getStrategies: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(400);
+      await simulateDelay(800);
       return mockResponse(mockAutoInvest.strategies);
     }
     const response = await apiClient.get('/auto-invest/strategies');
@@ -563,7 +680,7 @@ export const autoInvestAPI = {
   // Update strategy
   updateStrategy: async (id, updates) => {
     if (MOCK_MODE) {
-      await simulateDelay(800);
+      await simulateDelay(1000);
       return mockResponse({ success: true, message: 'Strategy updated' });
     }
     const response = await apiClient.put(`/auto-invest/strategies/${id}`, updates);
@@ -573,7 +690,7 @@ export const autoInvestAPI = {
   // Delete strategy
   deleteStrategy: async (id) => {
     if (MOCK_MODE) {
-      await simulateDelay(600);
+      await simulateDelay(1000);
       return mockResponse({ success: true, message: 'Strategy deleted' });
     }
     const response = await apiClient.delete(`/auto-invest/strategies/${id}`);
@@ -593,7 +710,7 @@ export const autoInvestAPI = {
   // Get SIP recommendations
   getSIPRecommendations: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(800);
+      await simulateDelay(1000);
       return mockResponse(mockAutoInvest.sipRecommendations);
     }
     const response = await apiClient.get('/auto-invest/sip-recommendations');
@@ -608,7 +725,7 @@ export const settingsAPI = {
   // Get user profile
   getProfile: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(300);
+      await simulateDelay(800);
       return mockResponse(mockSettings.profile);
     }
     const response = await apiClient.get('/settings/profile');
@@ -618,7 +735,7 @@ export const settingsAPI = {
   // Update profile
   updateProfile: async (updates) => {
     if (MOCK_MODE) {
-      await simulateDelay(800);
+      await simulateDelay(1000);
       return mockResponse({ success: true, message: 'Profile updated' });
     }
     const response = await apiClient.put('/settings/profile', updates);
@@ -628,7 +745,7 @@ export const settingsAPI = {
   // Get preferences
   getPreferences: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(250);
+      await simulateDelay(800);
       return mockResponse(mockSettings.preferences);
     }
     const response = await apiClient.get('/settings/preferences');
@@ -638,7 +755,7 @@ export const settingsAPI = {
   // Update preferences
   updatePreferences: async (updates) => {
     if (MOCK_MODE) {
-      await simulateDelay(600);
+      await simulateDelay(1000);
       return mockResponse({ success: true, message: 'Preferences updated' });
     }
     const response = await apiClient.put('/settings/preferences', updates);
@@ -648,7 +765,7 @@ export const settingsAPI = {
   // Get connected accounts
   getConnectedAccounts: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(300);
+      await simulateDelay(800);
       return mockResponse(mockSettings.connectedAccounts);
     }
     const response = await apiClient.get('/settings/accounts');
@@ -658,7 +775,7 @@ export const settingsAPI = {
   // Get notification settings
   getNotifications: async () => {
     if (MOCK_MODE) {
-      await simulateDelay(250);
+      await simulateDelay(800);
       return mockResponse(mockSettings.notifications);
     }
     const response = await apiClient.get('/settings/notifications');
@@ -668,7 +785,7 @@ export const settingsAPI = {
   // Update notification settings
   updateNotifications: async (updates) => {
     if (MOCK_MODE) {
-      await simulateDelay(600);
+      await simulateDelay(1000);
       return mockResponse({ success: true, message: 'Notifications updated' });
     }
     const response = await apiClient.put('/settings/notifications', updates);
