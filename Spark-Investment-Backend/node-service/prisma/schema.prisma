@@ -1,3 +1,6 @@
+// prisma/schema.prisma
+// Replace entire file with this:
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,6 +10,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ============================================
+// USER MODEL
+// ============================================
 model User {
   id            String    @id @default(uuid()) @db.Uuid
   email         String    @unique @db.VarChar(255)
@@ -18,15 +24,20 @@ model User {
   emailVerified Boolean   @default(false) @map("email_verified")
   status        UserStatus @default(ACTIVE)
   
+  preferences   Json?     @db.JsonB
+  
+  // Auth tracking
+  lastLogin     DateTime? @map("last_login")
   loginAttempts Int       @default(0) @map("login_attempts")
   lockUntil     DateTime? @map("lock_until")
   refreshToken  String?   @map("refresh_token") @db.Text
-
-  preferences   Json?     @db.JsonB
-  lastLogin     DateTime? @map("last_login")
   
+  // Timestamps
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
+  
+  // Relations
+  portfolio     Portfolio?
   
   @@index([email])
   @@map("users")
@@ -43,4 +54,130 @@ enum UserStatus {
   ACTIVE
   SUSPENDED
   DELETED
+}
+
+// ============================================
+// PORTFOLIO MODEL
+// ============================================
+model Portfolio {
+  id              String      @id @default(uuid()) @db.Uuid
+  userId          String      @unique @map("user_id") @db.Uuid
+  
+  // Summary values (calculated)
+  totalInvested   Decimal     @default(0) @db.Decimal(15, 2)
+  currentValue    Decimal     @default(0) @db.Decimal(15, 2)
+  returns         Decimal     @default(0) @db.Decimal(15, 2)
+  returnsPercent  Decimal     @default(0) @db.Decimal(10, 4)
+  
+  // Metadata
+  lastUpdated     DateTime    @default(now()) @map("last_updated")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  
+  // Relations
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  investments     Investment[]
+  
+  @@index([userId])
+  @@map("portfolios")
+}
+
+// ============================================
+// INVESTMENT MODEL
+// ============================================
+model Investment {
+  id              String          @id @default(uuid()) @db.Uuid
+  portfolioId     String          @map("portfolio_id") @db.Uuid
+  
+  // Basic Information
+  symbol          String          @db.VarChar(50)
+  name            String          @db.VarChar(255)
+  type            InvestmentType
+  platform        String          @db.VarChar(100)  // "Zerodha", "Groww", "Upstox", "Manual"
+  sector          String?         @db.VarChar(100)  // "Technology", "Banking", etc.
+  
+  // Quantity & Prices
+  quantity        Decimal         @db.Decimal(15, 6)
+  avgBuyPrice     Decimal         @map("avg_buy_price") @db.Decimal(15, 2)
+  currentPrice    Decimal         @map("current_price") @db.Decimal(15, 2)
+  
+  // Calculated Values (updated automatically)
+  investedAmount  Decimal         @map("invested_amount") @db.Decimal(15, 2)
+  currentValue    Decimal         @map("current_value") @db.Decimal(15, 2)
+  returns         Decimal         @db.Decimal(15, 2)
+  returnsPercent  Decimal         @map("returns_percent") @db.Decimal(10, 4)
+  
+  // Additional Info
+  purchaseDate    DateTime        @map("purchase_date") @db.Date
+  notes           String?         @db.Text
+  
+  // Status
+  isActive        Boolean         @default(true) @map("is_active")
+  
+  // Timestamps
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  
+  // Relations
+  portfolio       Portfolio       @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  transactions    Transaction[]
+  
+  @@index([portfolioId])
+  @@index([symbol])
+  @@index([type])
+  @@map("investments")
+}
+
+enum InvestmentType {
+  STOCK
+  MUTUAL_FUND
+  CRYPTO
+  ETF
+  BOND
+  GOLD
+  FD
+  PPF
+  NPS
+}
+
+// ============================================
+// TRANSACTION MODEL
+// ============================================
+model Transaction {
+  id            String          @id @default(uuid()) @db.Uuid
+  investmentId  String          @map("investment_id") @db.Uuid
+  
+  // Transaction Details
+  type          TransactionType
+  quantity      Decimal         @db.Decimal(15, 6)
+  price         Decimal         @db.Decimal(15, 2)
+  amount        Decimal         @db.Decimal(15, 2)  // Total amount (quantity × price)
+  
+  // Charges & Fees
+  charges       Decimal         @default(0) @db.Decimal(10, 2)
+  tax           Decimal         @default(0) @db.Decimal(10, 2)
+  totalAmount   Decimal         @map("total_amount") @db.Decimal(15, 2)  // amount + charges + tax
+  
+  // Metadata
+  date          DateTime        @db.Date
+  notes         String?         @db.Text
+  
+  // Timestamp
+  createdAt     DateTime        @default(now()) @map("created_at")
+  
+  // Relations
+  investment    Investment      @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+  
+  @@index([investmentId])
+  @@index([date])
+  @@map("transactions")
+}
+
+enum TransactionType {
+  BUY
+  SELL
+  DIVIDEND
+  BONUS
+  SPLIT
+  MERGER
 }

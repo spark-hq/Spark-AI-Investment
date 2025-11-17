@@ -1,6 +1,8 @@
+// src/routes/index.js
 const express = require('express');
 const router = express.Router();
 const authRoutes = require('./authRoutes');
+const portfolioRoutes = require('./portfolioRoutes');
 
 // Health check
 router.get('/health', (req, res) => {
@@ -19,13 +21,15 @@ router.get('/', (req, res) => {
     message: 'Spark Investment API',
     version: '1.0.0',
     endpoints: {
-      health: '/api/v1/health',
-      auth: '/api/v1/auth',
+      health: '/api/health',
+      auth: '/api/auth',
+      portfolio: '/api/portfolio',
     },
   });
 });
 
-// Auth routes
+// Routes
 router.use('/auth', authRoutes);
+router.use('/portfolio', portfolioRoutes);
 
 module.exports = router;
