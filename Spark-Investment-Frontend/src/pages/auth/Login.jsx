@@ -111,6 +111,7 @@ const Login = () => {
           form: result.error || 'Login failed. Please check your credentials.',
         }));
       }
+    // eslint-disable-next-line no-unused-vars
     } catch (error) {
       setErrors((prev) => ({
         ...prev,

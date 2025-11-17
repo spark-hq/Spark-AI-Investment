@@ -1,6 +1,8 @@
 import { createContext, useState, useEffect, useCallback } from 'react';
+import { authAPI } from '../services/api';
 
 // Create Auth Context
+// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext(null);
 
 // Token expiry times (in milliseconds)
@@ -21,10 +23,58 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   // ===================================
+  // Clear Auth Data Helper
+  // ===================================
+  const clearAuthData = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEYS.USER);
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.TOKEN_EXPIRY);
+    setUser(null);
+    setIsAuthenticated(false);
+  }, []);
+
+  // ===================================
+  // Token Refresh Logic
+  // ===================================
+  const attemptTokenRefresh = useCallback(async () => {
+    try {
+      const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+
+      if (!refreshToken) {
+        clearAuthData();
+        return false;
+      }
+
+      // Call real API through authAPI service
+      const result = await authAPI.refreshToken(refreshToken);
+
+      if (!result.success) {
+        throw new Error(result.error || 'Token refresh failed');
+      }
+
+      const { token: newAccessToken, refreshToken: newRefreshToken } = result.data;
+      const newExpiry = Date.now() + ACCESS_TOKEN_EXPIRY;
+      
+      // Update tokens in localStorage
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, newAccessToken);
+      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, newRefreshToken);
+      localStorage.setItem(STORAGE_KEYS.TOKEN_EXPIRY, newExpiry.toString());
+
+      return true;
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      // Refresh failed, logout
+      clearAuthData();
+      return false;
+    }
+  }, [clearAuthData]);
+
+  // ===================================
   // Initialize Auth State from LocalStorage
   // ===================================
   useEffect(() => {
-    const initializeAuth = () => {
+    const initializeAuth = async () => {
       try {
         const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
         const accessToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
@@ -41,7 +91,7 @@ export const AuthProvider = ({ children }) => {
             setIsAuthenticated(true);
           } else {
             // Token expired, try to refresh
-            attemptTokenRefresh();
+            await attemptTokenRefresh();
           }
         }
       } catch (error) {
@@ -53,30 +103,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     initializeAuth();
-  }, []);
-
-  // ===================================
-  // Token Refresh Logic
-  // ===================================
-  const attemptTokenRefresh = useCallback(() => {
-    const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
-
-    if (refreshToken) {
-      // Mock refresh token validation
-      // In real app, this would be an API call
-      const newAccessToken = `access_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const newExpiry = Date.now() + ACCESS_TOKEN_EXPIRY;
-
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, newAccessToken);
-      localStorage.setItem(STORAGE_KEYS.TOKEN_EXPIRY, newExpiry.toString());
-
-      return true;
-    }
-
-    // Refresh failed, logout
-    logout();
-    return false;
-  }, []);
+  }, [attemptTokenRefresh, clearAuthData]);
 
   // ===================================
   // Auto Token Refresh Timer
@@ -108,62 +135,31 @@ export const AuthProvider = ({ children }) => {
   }, [isAuthenticated, attemptTokenRefresh]);
 
   // ===================================
-  // Clear Auth Data Helper
-  // ===================================
-  const clearAuthData = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEYS.USER);
-    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.TOKEN_EXPIRY);
-    setUser(null);
-    setIsAuthenticated(false);
-  }, []);
-
-  // ===================================
-  // Login Function (Mock Implementation)
+  // Login Function
   // ===================================
   const login = useCallback(async (email, password, keepSignedIn = false) => {
     try {
-      // Mock authentication - in real app, this would be an API call
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Call real API through authAPI service
+      const result = await authAPI.login(email, password, keepSignedIn);
 
-      // Mock validation (accept any non-empty credentials for demo)
-      if (!email || !password) {
-        throw new Error('Email and password are required');
+      if (!result.success) {
+        throw new Error(result.error || 'Login failed');
       }
 
-      // Mock user data
-      const mockUser = {
-        id: `user_${Date.now()}`,
-        name: email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1),
-        email: email,
-        avatar: null,
-        preferences: {
-          theme: 'light',
-          notifications: true,
-          currency: 'INR',
-        },
-        portfolioIds: ['portfolio_1', 'portfolio_2'],
-        createdAt: new Date().toISOString(),
-      };
-
-      // Generate mock tokens
-      const accessToken = `access_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const refreshToken = `refresh_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const { user, token, refreshToken } = result.data;
       const tokenExpiry = Date.now() + ACCESS_TOKEN_EXPIRY;
 
       // Store in localStorage
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(mockUser));
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
       localStorage.setItem(STORAGE_KEYS.TOKEN_EXPIRY, tokenExpiry.toString());
 
       // Update state
-      setUser(mockUser);
+      setUser(user);
       setIsAuthenticated(true);
 
-      return { success: true, user: mockUser };
+      return { success: true, user };
     } catch (error) {
       console.error('Login error:', error);
       return { success: false, error: error.message };
@@ -171,56 +167,31 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // ===================================
-  // Signup Function (Mock Implementation)
+  // Signup Function
   // ===================================
   const signup = useCallback(async (userData) => {
     try {
-      // Mock signup - in real app, this would be an API call
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Call real API through authAPI service
+      const result = await authAPI.signup(userData);
 
-      // Validate required fields
-      const { name, email, password, phone, dob, riskProfile } = userData;
-
-      if (!name || !email || !password) {
-        throw new Error('Name, email, and password are required');
+      if (!result.success) {
+        throw new Error(result.error || 'Signup failed');
       }
 
-      // Mock user creation
-      const newUser = {
-        id: `user_${Date.now()}`,
-        name: name,
-        email: email,
-        phone: phone || null,
-        dob: dob || null,
-        riskProfile: riskProfile || 'moderate',
-        avatar: null,
-        preferences: {
-          theme: 'light',
-          notifications: true,
-          currency: 'INR',
-        },
-        portfolioIds: [],
-        createdAt: new Date().toISOString(),
-        kycStatus: phone && dob ? 'pending' : 'incomplete',
-      };
-
-      // Generate mock tokens
-      const accessToken = `access_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const refreshToken = `refresh_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const { user, token, refreshToken } = result.data;
       const tokenExpiry = Date.now() + ACCESS_TOKEN_EXPIRY;
 
       // Store in localStorage
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(newUser));
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
       localStorage.setItem(STORAGE_KEYS.TOKEN_EXPIRY, tokenExpiry.toString());
 
       // Update state
-      setUser(newUser);
+      setUser(user);
       setIsAuthenticated(true);
 
-      return { success: true, user: newUser };
+      return { success: true, user };
     } catch (error) {
       console.error('Signup error:', error);
       return { success: false, error: error.message };
@@ -230,8 +201,16 @@ export const AuthProvider = ({ children }) => {
   // ===================================
   // Logout Function
   // ===================================
-  const logout = useCallback(() => {
-    clearAuthData();
+  const logout = useCallback(async () => {
+    try {
+      // Call real API through authAPI service
+      await authAPI.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Always clear local data regardless of API response
+      clearAuthData();
+    }
   }, [clearAuthData]);
 
   // ===================================
@@ -272,23 +251,22 @@ export const AuthProvider = ({ children }) => {
   }, [user]);
 
   // ===================================
-  // Send OTP (Mock)
+  // Send OTP (Forgot Password)
   // ===================================
   const sendOTP = useCallback(async (email) => {
     try {
-      // Mock OTP sending - in real app, this would be an API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Call real API through authAPI service
+      const result = await authAPI.forgotPassword(email);
 
-      // Generate mock OTP (in real app, this would be sent to email)
-      const mockOTP = Math.floor(100000 + Math.random() * 900000).toString();
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to send OTP');
+      }
 
-      // Store OTP temporarily (in real app, this would be handled by backend)
-      sessionStorage.setItem(`otp_${email}`, mockOTP);
-      sessionStorage.setItem(`otp_expiry_${email}`, (Date.now() + 5 * 60 * 1000).toString());
-
-      console.log(`Mock OTP for ${email}: ${mockOTP}`); // For testing
-
-      return { success: true, message: 'OTP sent successfully' };
+      return { 
+        success: true, 
+        message: result.message || 'OTP sent successfully',
+        data: result.data 
+      };
     } catch (error) {
       console.error('Send OTP error:', error);
       return { success: false, error: error.message };
@@ -296,13 +274,16 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // ===================================
-  // Verify OTP (Mock)
+  // Verify OTP (Mock - can be extended for real verification)
   // ===================================
   const verifyOTP = useCallback(async (email, otp) => {
     try {
-      // Mock OTP verification - in real app, this would be an API call
+      // This is a mock verification for now
+      // In real app, this could be a separate API endpoint
+      // For password reset flow, verification happens in resetPassword()
       await new Promise((resolve) => setTimeout(resolve, 800));
 
+      // Mock OTP verification logic
       const storedOTP = sessionStorage.getItem(`otp_${email}`);
       const otpExpiry = sessionStorage.getItem(`otp_expiry_${email}`);
 
@@ -332,28 +313,26 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // ===================================
-  // Reset Password (Mock)
+  // Reset Password
   // ===================================
   const resetPassword = useCallback(async (email, newPassword, otp) => {
     try {
-      // Mock password reset - in real app, this would be an API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Call real API through authAPI service
+      const result = await authAPI.resetPassword(email, otp, newPassword);
 
-      // Verify OTP first
-      const otpVerification = await verifyOTP(email, otp);
-      if (!otpVerification.success) {
-        throw new Error(otpVerification.error);
+      if (!result.success) {
+        throw new Error(result.error || 'Password reset failed');
       }
 
-      // In real app, update password in backend
-      // For mock, we just return success
-
-      return { success: true, message: 'Password reset successfully' };
+      return { 
+        success: true, 
+        message: result.message || 'Password reset successfully' 
+      };
     } catch (error) {
       console.error('Reset password error:', error);
       return { success: false, error: error.message };
     }
-  }, [verifyOTP]);
+  }, []);
 
   // ===================================
   // Context Value

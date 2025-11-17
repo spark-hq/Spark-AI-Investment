@@ -328,6 +328,47 @@ Authorization: Bearer <refreshToken>
 
 **Webhook:** Send POST to `/webhooks/sync-complete` when done
 
+### GET /portfolio/allocation
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "equity": 60.00,
+    "debt": 25.00,
+    "gold": 10.00,
+    "crypto": 5.00
+  }
+}
+GET /portfolio/top-performers
+Response:
+
+{
+  "success": true,
+  "data": [
+    {
+      "symbol": "TCS",
+      "returns": 25.50,
+      "currentValue": 125000
+    }
+  ]
+}
+GET /portfolio/activity?limit={limit}
+Response:
+
+{
+  "success": true,
+  "data": [
+    {
+      "type": "buy",
+      "symbol": "RELIANCE",
+      "amount": 50000,
+      "timestamp": "2024-11-17T10:30:00Z"
+    }
+  ]
+}
+
+
 ---
 
 ## 3. Investment APIs

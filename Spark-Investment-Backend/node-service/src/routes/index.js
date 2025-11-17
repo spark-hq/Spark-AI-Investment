@@ -31,5 +31,6 @@ router.get('/', (req, res) => {
 // Routes
 router.use('/auth', authRoutes);
 router.use('/portfolio', portfolioRoutes);
+router.delete('/platforms/connect/:platformId', protect, disconnectPlatform);
 
 module.exports = router;
