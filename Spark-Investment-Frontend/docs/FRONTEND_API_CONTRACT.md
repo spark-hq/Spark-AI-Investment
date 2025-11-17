@@ -1,10 +1,43 @@
 # Frontend API Contract
 **Quick Reference Guide for Frontend Integration**
 
-**Version:** 1.0
+**Version:** 2.0 (Updated with Corrections)
 **Base URL:** `http://localhost:5000/api` (Development)
 **Base URL:** `https://api.sparkinvestment.com/v1` (Production)
 **Authentication:** JWT Bearer Token (except signup/login)
+
+---
+
+## ⚠️ Important Corrections Made
+
+This document has been updated to reflect the correct API endpoints that align with the backend API contract. The following changes were made:
+
+### Trading Endpoints (CORRECTED)
+- ✅ **POST** `/trading/orders` (was `/trading/execute`)
+- ✅ **GET** `/trading/orders` with filters (was `/trading/history`)
+- ✅ **GET** `/trading/positions` (was `/trading/pending`)
+- Frontend hooks renamed: `usePlaceOrder()`, `useOrderHistory()`, `useOpenPositions()`
+
+### Investment Category Filtering (CORRECTED)
+- ✅ Use query parameters: `/investments?type=stock` (not `/investments/stocks`)
+- ✅ Use query parameters: `/investments?type=mutual_fund` (not `/investments/mutual-funds`)
+- ✅ Use query parameters: `/investments?type=crypto` (not `/investments/crypto`)
+
+### Platform Integration (CORRECTED)
+- ✅ **POST** `/platforms/connect` (was `/portfolio/connect`)
+
+### AI Endpoints (CORRECTED)
+- ✅ **GET** `/ai/sentiment` (was `/ai/market-sentiment`)
+- ℹ️ Recommendations and risk analysis are included in `/ai/insights` response
+
+### Goals API (ADDED)
+- ⚠️ **NEW**: Complete Goals API endpoints added (15-16)
+- ⚠️ **ACTION REQUIRED**: Create `hooks/useGoals.js` file
+
+### Transactions Export (CORRECTED)
+- ✅ **POST** `/transactions/export` (was GET, now async with export ID)
+
+For detailed implementation changes, see `FRONTEND_API_USAGE_AND_FIXES.md`
 
 ---
 
@@ -554,6 +587,7 @@
 **Endpoint:** `POST /trading/orders`
 **Authentication:** Required
 **Headers:** `Authorization: Bearer <token>`
+**Frontend Hook:** `usePlaceOrder()` in `hooks/useTrading.js`
 
 **Request:**
 ```json
@@ -583,6 +617,148 @@
     "price": 1450.00,
     "estimatedCost": 14500.00,
     "timestamp": "2024-11-17T10:30:00.000Z"
+  }
+}
+```
+
+---
+
+### 13. Get Order History
+**Endpoint:** `GET /trading/orders?from=2024-01-01&to=2024-11-17&status=executed`
+**Authentication:** Required
+**Headers:** `Authorization: Bearer <token>`
+**Frontend Hook:** `useOrderHistory()` in `hooks/useTrading.js`
+
+**Success Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "orders": [
+      {
+        "orderId": "order_123",
+        "symbol": "RELIANCE",
+        "type": "market",
+        "side": "buy",
+        "quantity": 10,
+        "avgExecutionPrice": 2750.00,
+        "status": "executed",
+        "executedAt": "2024-11-15T14:30:00.000Z"
+      }
+    ],
+    "pagination": {
+      "total": 50,
+      "page": 1,
+      "limit": 20
+    }
+  }
+}
+```
+
+---
+
+### 14. Get Open Positions
+**Endpoint:** `GET /trading/positions`
+**Authentication:** Required
+**Headers:** `Authorization: Bearer <token>`
+**Frontend Hook:** `useOpenPositions()` in `hooks/useTrading.js`
+
+**Success Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "positions": [
+      {
+        "symbol": "TCS",
+        "quantity": 50,
+        "avgEntryPrice": 3200.00,
+        "currentPrice": 3600.00,
+        "pnl": 20000.00,
+        "pnlPercentage": 12.50,
+        "platform": "Zerodha"
+      }
+    ],
+    "summary": {
+      "totalPositions": 5,
+      "totalPnl": 45000.00,
+      "dayPnl": 2500.00
+    }
+  }
+}
+```
+
+---
+
+### 15. Get All Goals
+**Endpoint:** `GET /goals?status=active`
+**Authentication:** Required
+**Headers:** `Authorization: Bearer <token>`
+**Frontend Hook:** `useGoals()` in `hooks/useGoals.js` ⚠️ **NEEDS TO BE CREATED**
+
+**Success Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "goals": [
+      {
+        "id": "goal_123",
+        "name": "Retirement Fund",
+        "category": "retirement",
+        "targetAmount": 10000000.00,
+        "currentAmount": 2500000.00,
+        "targetDate": "2045-12-31",
+        "monthlyContribution": 25000.00,
+        "progress": 25.00,
+        "status": "active"
+      }
+    ],
+    "summary": {
+      "totalGoals": 5,
+      "activeGoals": 4,
+      "totalTargetAmount": 15000000.00,
+      "totalCurrentAmount": 3500000.00,
+      "overallProgress": 23.33
+    }
+  }
+}
+```
+
+---
+
+### 16. Create Goal
+**Endpoint:** `POST /goals`
+**Authentication:** Required
+**Headers:** `Authorization: Bearer <token>`
+**Frontend Hook:** `useCreateGoal()` in `hooks/useGoals.js` ⚠️ **NEEDS TO BE CREATED**
+
+**Request:**
+```json
+{
+  "name": "Retirement Fund",
+  "category": "retirement",
+  "targetAmount": 10000000.00,
+  "currentAmount": 0,
+  "targetDate": "2045-12-31",
+  "monthlyContribution": 25000.00,
+  "priority": "critical",
+  "description": "Build retirement corpus"
+}
+```
+
+**Success Response (201 Created):**
+```json
+{
+  "success": true,
+  "message": "Goal created successfully",
+  "data": {
+    "id": "goal_550e8400",
+    "name": "Retirement Fund",
+    "targetAmount": 10000000.00,
+    "progress": 0,
+    "status": "active",
+    "createdAt": "2024-11-17T10:30:00.000Z"
   }
 }
 ```
