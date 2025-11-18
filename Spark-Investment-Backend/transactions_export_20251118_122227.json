@@ -1,0 +1,167 @@
+﻿{
+    "success":  true,
+    "data":  {
+                 "transactions":  [
+                                      {
+                                          "id":  "7b32b5ce-5b29-4c72-8bbe-85b5150deaeb",
+                                          "investmentId":  "84fa6458-5724-4fa4-99df-8af5df61a662",
+                                          "type":  "SELL",
+                                          "quantity":  "2",
+                                          "price":  "2700",
+                                          "amount":  "5400",
+                                          "charges":  "15",
+                                          "tax":  "10",
+                                          "totalAmount":  "5425",
+                                          "date":  "2024-09-20T00:00:00.000Z",
+                                          "notes":  "Partial profit booking",
+                                          "createdAt":  "2025-11-18T06:42:07.395Z",
+                                          "investment":  {
+                                                             "symbol":  "BTC",
+                                                             "name":  "Bitcoin",
+                                                             "type":  "CRYPTO",
+                                                             "platform":  "Binance"
+                                                         }
+                                      },
+                                      {
+                                          "id":  "c67c6a76-28e2-4eea-81c2-07786968fd00",
+                                          "investmentId":  "84fa6458-5724-4fa4-99df-8af5df61a662",
+                                          "type":  "SELL",
+                                          "quantity":  "2",
+                                          "price":  "2700",
+                                          "amount":  "5400",
+                                          "charges":  "15",
+                                          "tax":  "10",
+                                          "totalAmount":  "5425",
+                                          "date":  "2024-09-20T00:00:00.000Z",
+                                          "notes":  "Partial profit booking",
+                                          "createdAt":  "2025-11-18T06:48:21.106Z",
+                                          "investment":  {
+                                                             "symbol":  "BTC",
+                                                             "name":  "Bitcoin",
+                                                             "type":  "CRYPTO",
+                                                             "platform":  "Binance"
+                                                         }
+                                      },
+                                      {
+                                          "id":  "458ce99c-fc4b-4978-9776-6f3cd51bd3bf",
+                                          "investmentId":  "84fa6458-5724-4fa4-99df-8af5df61a662",
+                                          "type":  "DIVIDEND",
+                                          "quantity":  "5",
+                                          "price":  "50",
+                                          "amount":  "250",
+                                          "charges":  "0",
+                                          "tax":  "5",
+                                          "totalAmount":  "255",
+                                          "date":  "2024-06-15T00:00:00.000Z",
+                                          "notes":  "Quarterly dividend ?50 per share",
+                                          "createdAt":  "2025-11-18T06:42:06.436Z",
+                                          "investment":  {
+                                                             "symbol":  "BTC",
+                                                             "name":  "Bitcoin",
+                                                             "type":  "CRYPTO",
+                                                             "platform":  "Binance"
+                                                         }
+                                      },
+                                      {
+                                          "id":  "180521d0-a6fa-411c-8d70-a1228e285b29",
+                                          "investmentId":  "84fa6458-5724-4fa4-99df-8af5df61a662",
+                                          "type":  "DIVIDEND",
+                                          "quantity":  "5",
+                                          "price":  "50",
+                                          "amount":  "250",
+                                          "charges":  "0",
+                                          "tax":  "5",
+                                          "totalAmount":  "255",
+                                          "date":  "2024-06-15T00:00:00.000Z",
+                                          "notes":  "Quarterly dividend ?50 per share",
+                                          "createdAt":  "2025-11-18T06:48:20.502Z",
+                                          "investment":  {
+                                                             "symbol":  "BTC",
+                                                             "name":  "Bitcoin",
+                                                             "type":  "CRYPTO",
+                                                             "platform":  "Binance"
+                                                         }
+                                      },
+                                      {
+                                          "id":  "f47b2d9c-47c5-4862-bd65-85a6293b91da",
+                                          "investmentId":  "84fa6458-5724-4fa4-99df-8af5df61a662",
+                                          "type":  "BUY",
+                                          "quantity":  "0.05",
+                                          "price":  "3500000",
+                                          "amount":  "175000",
+                                          "charges":  "0",
+                                          "tax":  "0",
+                                          "totalAmount":  "175000",
+                                          "date":  "2024-05-10T00:00:00.000Z",
+                                          "notes":  "Initial purchase",
+                                          "createdAt":  "2025-11-18T05:21:45.513Z",
+                                          "investment":  {
+                                                             "symbol":  "BTC",
+                                                             "name":  "Bitcoin",
+                                                             "type":  "CRYPTO",
+                                                             "platform":  "Binance"
+                                                         }
+                                      },
+                                      {
+                                          "id":  "0b0c3cdf-55a8-40ee-b88d-b4797b51f838",
+                                          "investmentId":  "ac154b7c-020e-4003-a04d-6eb95c348b13",
+                                          "type":  "BUY",
+                                          "quantity":  "100",
+                                          "price":  "85.5",
+                                          "amount":  "8550",
+                                          "charges":  "0",
+                                          "tax":  "0",
+                                          "totalAmount":  "8550",
+                                          "date":  "2024-03-01T00:00:00.000Z",
+                                          "notes":  "Initial purchase",
+                                          "createdAt":  "2025-11-18T05:21:04.214Z",
+                                          "investment":  {
+                                                             "symbol":  "SBIBCMF",
+                                                             "name":  "SBI BlueChip Fund",
+                                                             "type":  "MUTUAL_FUND",
+                                                             "platform":  "Groww"
+                                                         }
+                                      },
+                                      {
+                                          "id":  "0f6b0b7e-1058-4d86-ac79-e60a58e7c4d5",
+                                          "investmentId":  "827bdd54-74cb-4976-b345-d74d16d652f2",
+                                          "type":  "BUY",
+                                          "quantity":  "10",
+                                          "price":  "2500",
+                                          "amount":  "25000",
+                                          "charges":  "0",
+                                          "tax":  "0",
+                                          "totalAmount":  "25000",
+                                          "date":  "2024-01-15T00:00:00.000Z",
+                                          "notes":  "Initial purchase",
+                                          "createdAt":  "2025-11-18T05:19:50.353Z",
+                                          "investment":  {
+                                                             "symbol":  "RELIANCE",
+                                                             "name":  "Reliance Industries Ltd",
+                                                             "type":  "STOCK",
+                                                             "platform":  "Zerodha"
+                                                         }
+                                      },
+                                      {
+                                          "id":  "322235a0-8420-46fd-afbe-dc49521a4124",
+                                          "investmentId":  "a03c3267-1ec3-487f-b532-0bd6fc4db82a",
+                                          "type":  "BUY",
+                                          "quantity":  "10",
+                                          "price":  "2500",
+                                          "amount":  "25000",
+                                          "charges":  "0",
+                                          "tax":  "0",
+                                          "totalAmount":  "25000",
+                                          "date":  "2024-01-15T00:00:00.000Z",
+                                          "notes":  "Initial purchase",
+                                          "createdAt":  "2025-11-18T05:20:43.164Z",
+                                          "investment":  {
+                                                             "symbol":  "RELIANCE",
+                                                             "name":  "Reliance Industries Ltd",
+                                                             "type":  "STOCK",
+                                                             "platform":  "Zerodha"
+                                                         }
+                                      }
+                                  ]
+             }
+}

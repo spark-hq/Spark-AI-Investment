@@ -3,7 +3,6 @@
 // ===================================
 import axios from "axios";
 import {
-  mockPortfolio,
   mockInvestments,
   mockMarketData,
   mockAIAnalysis,
@@ -45,53 +44,24 @@ let isRedirecting = false;
 // Authentication API
 // ===================================
 export const authAPI = {
-  // Signup
-  signup: async (userData) => {
-    if (MOCK_MODE) {
-      await simulateDelay(1500);
-      return mockResponse({
-        success: true,
-        data: {
-          user: { id: "mock_id", email: userData.email, name: userData.name },
-          token: "mock_token",
-          refreshToken: "mock_refresh_token",
-        },
-      });
-    }
-    const response = await apiClient.post("/auth/signup", userData);
-    return response.data;
-  },
+    // Signup
+    signup: async (userData) => {
+      const response = await apiClient.post("/auth/signup", userData);
+      return response.data;
+    },
 
-  // Login
-  login: async (email, password, rememberMe) => {
-    if (MOCK_MODE) {
-      await simulateDelay(1000);
-      return mockResponse({
-        success: true,
-        data: {
-          user: { id: "mock_id", email, name: email.split("@")[0] },
-          token: "mock_token",
-          refreshToken: "mock_refresh_token",
-        },
+    // Login
+    login: async (email, password, rememberMe) => {
+      const response = await apiClient.post("/auth/login", {
+        email,
+        password,
+        rememberMe,
       });
-    }
-    const response = await apiClient.post("/auth/login", {
-      email,
-      password,
-      rememberMe,
-    });
-    return response.data;
-  },
+      return response.data;
+    },
 
   // Logout
   logout: async () => {
-    if (MOCK_MODE) {
-      await simulateDelay(500);
-      return mockResponse({
-        success: true,
-        message: "Logged out successfully",
-      });
-    }
     const response = await apiClient.post("/auth/logout");
     return response.data;
   },
@@ -191,7 +161,7 @@ apiClient.interceptors.response.use(
 
       // Use setTimeout to ensure redirect happens after error is returned
       setTimeout(() => {
-        window.location.href = "/login";
+        window.location.href = "/Spark-Investment-Frontend/login";
       }, 100);
     }
 
@@ -205,70 +175,66 @@ apiClient.interceptors.response.use(
 export const portfolioAPI = {
   // Get portfolio summary
   getSummary: async () => {
-    if (DEBUG_MODE) {
-      console.log("🔍 getSummary - MOCK_MODE:", MOCK_MODE);
-    }
-    if (MOCK_MODE) {
-      await simulateDelay(800);
-      return mockResponse(mockPortfolio.summary);
-    }
+    // if (DEBUG_MODE) {
+    //   console.log("🔍 getSummary - MOCK_MODE:", MOCK_MODE);
+    // }
     const response = await apiClient.get("/portfolio/summary");
     return response.data;
   },
 
   // Get connected platforms
   getPlatforms: async () => {
-    if (DEBUG_MODE) {
-      console.log("🔍 getPlatforms - MOCK_MODE:", MOCK_MODE);
-    }
-    if (MOCK_MODE) {
-      await simulateDelay(800);
-      return mockResponse(mockPortfolio.platforms);
-    }
+    // if (DEBUG_MODE) {
+    //   console.log("🔍 getPlatforms - MOCK_MODE:", MOCK_MODE);
+    // }
+    // if (MOCK_MODE) {
+    //   await simulateDelay(800);
+    //   return mockResponse(mockPortfolio.platforms);
+    // }
     const response = await apiClient.get("/portfolio/platforms");
-    return response.data;
+    return response.data.data.platforms;
   },
 
   // Get performance data
   getPerformance: async (period = "1M") => {
-    if (MOCK_MODE) {
-      await simulateDelay(800);
-      return mockResponse(mockPortfolio.performance);
-    }
+    // if (MOCK_MODE) {
+    //   await simulateDelay(800);
+    //   return mockResponse(mockPortfolio.performance);
+    // }
     const response = await apiClient.get(
       `/portfolio/performance?period=${period}`
     );
-    return response.data;
+    return response.data.data.performance;
   },
 
   // Get asset allocation
   getAllocation: async () => {
-    if (MOCK_MODE) {
-      await simulateDelay(800);
-      return mockResponse(mockPortfolio.allocation);
-    }
+    // if (MOCK_MODE) {
+    //   await simulateDelay(800);
+    //   return mockResponse(mockPortfolio.allocation);
+    // }
     const response = await apiClient.get("/portfolio/allocation");
-    return response.data;
+    return response.data.data.allocation;
   },
 
   // Get top performers
   getTopPerformers: async () => {
-    if (MOCK_MODE) {
-      await simulateDelay(800);
-      return mockResponse(mockPortfolio.topPerformers);
-    }
+    // if (MOCK_MODE) {
+    //   await simulateDelay(800);
+    //   return mockResponse(mockPortfolio.topPerformers);
+    // }
     const response = await apiClient.get("/portfolio/top-performers");
-    return response.data;
+    return response.data.data.topPerformers;
   },
 
   // Get recent activity
   getRecentActivity: async (limit = 10) => {
-    if (MOCK_MODE) {
-      await simulateDelay(800);
-      return mockResponse(mockPortfolio.recentActivity.slice(0, limit));
-    }
+    // if (MOCK_MODE) {
+    //   await simulateDelay(800);
+    //   return mockResponse(mockPortfolio.recentActivity.slice(0, limit));
+    // }
     const response = await apiClient.get(`/portfolio/activity?limit=${limit}`);
-    return response.data;
+    return response.data.data.recentActivity;
   },
 
   // Connect new platform

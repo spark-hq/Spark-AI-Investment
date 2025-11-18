@@ -3,6 +3,9 @@ const express = require('express');
 const router = express.Router();
 const authRoutes = require('./authRoutes');
 const portfolioRoutes = require('./portfolioRoutes');
+const investmentRoutes = require('./investmentRoutes');
+const transactionRoutes = require('./transactionRoutes');
+const priceRoutes = require('./priceRoutes');
 
 // Health check
 router.get('/health', (req, res) => {
@@ -24,6 +27,10 @@ router.get('/', (req, res) => {
       health: '/api/health',
       auth: '/api/auth',
       portfolio: '/api/portfolio',
+      investments: '/api/investments',
+      transactions: '/api/transactions',
+      prices: '/api/prices',
+      platforms: '/api/platforms',
     },
   });
 });
@@ -31,6 +38,8 @@ router.get('/', (req, res) => {
 // Routes
 router.use('/auth', authRoutes);
 router.use('/portfolio', portfolioRoutes);
-router.delete('/platforms/connect/:platformId', protect, disconnectPlatform);
+router.use('/investments', investmentRoutes);
+router.use('/transactions', transactionRoutes);
+router.use('/prices', priceRoutes);
 
 module.exports = router;

@@ -1,0 +1,8 @@
+﻿Date,Type,Symbol,Investment Name,Investment Type,Platform,Quantity,Price,Amount,Charges,Tax,Total Amount,Notes
+2024-09-20,SELL,BTC,"Bitcoin",CRYPTO,Binance,2,2700,5400,15,10,5425,"Partial profit booking"
+2024-06-15,DIVIDEND,BTC,"Bitcoin",CRYPTO,Binance,5,50,250,0,5,255,"Quarterly dividend ?50 per share"
+2024-05-10,BUY,BTC,"Bitcoin",CRYPTO,Binance,0.05,3500000,175000,0,0,175000,"Initial purchase"
+2024-03-01,BUY,SBIBCMF,"SBI BlueChip Fund",MUTUAL_FUND,Groww,100,85.5,8550,0,0,8550,"Initial purchase"
+2024-01-15,BUY,RELIANCE,"Reliance Industries Ltd",STOCK,Zerodha,10,2500,25000,0,0,25000,"Initial purchase"
+2024-01-15,BUY,BTC,"Bitcoin",CRYPTO,Binance,5,2550,12750,25.5,18.75,12794.25,"Initial purchase (price corrected)"
+2024-01-15,BUY,RELIANCE,"Reliance Industries Ltd",STOCK,Zerodha,10,2500,25000,0,0,25000,"Initial purchase"

@@ -9,6 +9,7 @@ const cookieParser = require('cookie-parser');
 const prisma = require('./config/database');
 const redis = require('./config/redis');
 const logger = require('./utils/logger');
+const { startPriceUpdateJob } = require('./jobs/priceUpdateJob');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 const routes = require('./routes');
 
@@ -16,9 +17,15 @@ const app = express();
 
 // Middleware
 app.use(helmet());
+// app.use(cors({
+//   origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+//   credentials: true,
+// }));
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
-  credentials: true,
+    origin: '*', // Allow all origins (for development)
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -61,6 +68,11 @@ app.listen(PORT, async () => {
     logger.error('❌ Database connection failed:', error.message);
   }
 });
+
+if (process.env.NODE_ENV !== 'test') {
+  startPriceUpdateJob();
+  logger.info('✅ Background jobs started');
+}
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
